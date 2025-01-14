@@ -1,0 +1,8 @@
+# testing folders
+frames/
+data/*
+
+# other
+.vscode
+.DS_Store
+__pycache__
