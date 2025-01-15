@@ -1,14 +1,31 @@
-from ..process_transcription import process_transcription_with_openai
+from ..process_transcription import process_transcription
 
 if __name__ == "__main__":
-    # Sample transcribed audio text to test the function
-    transcribed_audio_text = """
-    During the meeting, please finalize the budget report, reach out to the marketing team for campaign updates,
-    and schedule a client call for next week. Also, prepare a summary of the project status by tomorrow.
-    """
+    # API key for Groq
+    api_key = "your_api_key_here"
 
-    # Call the task extraction function
-    tasks = process_transcription_with_openai(transcribed_audio_text)
+    # Specify the model to use
+    model = "llama-3.3-70b-versatile"
 
-    # Print the extracted tasks
-    print("Extracted Tasks:", tasks)
+    # Define the messages for the conversation
+    messages = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant."
+        },
+        {
+            "role": "user",
+            "content": "Explain the importance of fast language models."
+        }
+    ]
+
+    # Call the function to generate chat completion
+    response = process_transcription(
+        api_key=api_key,
+        model=model,
+        messages=messages
+    )
+
+    # Print the response
+    if response:
+        print("Chat Completion:", response)

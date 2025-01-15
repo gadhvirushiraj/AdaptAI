@@ -8,7 +8,7 @@ if __name__ == "__main__":
     api_key = "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"
 
     # Call the transcription function
-    transcription = transcribe_audio.transcribe_audio_file(filename, api_key)
+    transcription = transcribe_audio(filename, api_key)
 
     # Print the transcription result
     if transcription:

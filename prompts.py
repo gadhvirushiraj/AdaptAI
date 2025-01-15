@@ -99,3 +99,27 @@ ACS_PROMPT = FewShotPromptTemplate(
     suffix="Use the examples above to format your response for the new description below:\n\n{img_desp}",
     input_variables=["img_desp"],
 )
+
+TASK_EXTRACTION_PROMPT = """
+You are an expert in task analysis. Your ONLY purpose is to extract actionable tasks from the provided transcribed speech and return them in the specified JSON format.
+
+TASK EXTRACTION PARAMETERS:
+1. Identify actionable tasks mentioned in the transcribed text.
+2. Ensure each task is clear, concise, and actionable.
+
+OUTPUT FORMAT:
+Provide a JSON object with the following structure:
+{
+    "tasks": [
+        "Task 1",
+        "Task 2",
+        "Task 3"
+    ]
+}
+
+RULES:
+1. Only return the JSON object.
+2. Ensure the JSON is valid and does not include any additional text or formatting.
+3. Tasks must be derived accurately based on the provided text.
+4. Do not include commentary, explanations, or extra text outside the JSON object.
+"""
