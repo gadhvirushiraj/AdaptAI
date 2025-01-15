@@ -1,4 +1,4 @@
-from ..process_transcription import process_transcription
+from process_transcription import process_transcription
 
 if __name__ == "__main__":
     # API key for Groq

@@ -1,4 +1,4 @@
-from ..audio_transcription import transcribe_audio
+from audio_transcription import transcribe_audio
 
 if __name__ == "__main__":
     # Path to the audio file

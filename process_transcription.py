@@ -32,7 +32,7 @@ def process_transcription(api_key, model, messages, temperature=0.5, max_tokens=
             stream=stream,
         )
 
-        # Return the generated content
+        # Return the generated content 
         return chat_completion.choices[0].message.content
 
     except Exception as e:
