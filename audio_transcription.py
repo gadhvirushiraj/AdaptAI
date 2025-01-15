@@ -1,47 +1,39 @@
-import torch
-from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
-import librosa
+from groq import Groq
 
-def transcribe_audio(wav_file: str) -> str:
+def transcribe_audio(filename, api_key, model="whisper-large-v3-turbo", language="en", temperature=0.0, prompt=None):
     """
-    Transcribes the speech from the provided WAV file.
-    
+    Transcribe an audio file using the Groq API.
+
     Args:
-        wav_file (str): Path to the WAV file.
-    
+        - filename (str): Path to the audio file to be transcribed.
+        - api_key (str): Groq API key for authentication.
+        - model (str): Model to use for transcription (default: whisper-large-v3-turbo).
+        - language (str): Language of the audio (default: "en").
+        - temperature (float): Sampling temperature for the transcription model (default: 0.0).
+        - prompt (str): Optional context or spelling prompt to guide the transcription.
+
     Returns:
-        str: Transcribed text from the audio file.
+        - dict: The transcription response in JSON format.
     """
-    # Define device and model parameters
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    torch_dtype = torch.float16 if torch.cuda.is_available() else torch.float32
+    try:
+        # Initialize the Groq client
+        client = Groq(api_key=api_key)
+        
+        # Open the audio file
+        with open(filename, "rb") as file:
+            # Create a transcription of the audio file
+            transcription = client.audio.transcriptions.create(
+                file=(filename, file.read()),  # Audio file
+                model=model,  # Model to use for transcription
+                prompt=prompt,  # Optional prompt
+                response_format="json",  # Response format
+                language=language,  # Language of the audio
+                temperature=temperature  # Sampling temperature
+            )
+        
+        # Return the transcription response
+        return transcription
 
-    # Load model and processor
-    model_id = "distil-whisper/distil-large-v3"
-
-    model = AutoModelForSpeechSeq2Seq.from_pretrained(
-        model_id, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
-    )
-    model.to(device)
-
-    processor = AutoProcessor.from_pretrained(model_id)
-
-    pipe = pipeline(
-        "automatic-speech-recognition",
-        model=model,
-        tokenizer=processor.tokenizer,
-        feature_extractor=processor.feature_extractor,
-        max_new_tokens=128,
-        torch_dtype=torch_dtype,
-        device=device,
-    )
-
-    # Load the audio file
-    audio_data, sample_rate = librosa.load(wav_file, sr=16000)  # Ensure it's resampled to 16 kHz
-
-    # Convert audio to the format the pipeline expects
-    audio_input = {"array": audio_data, "sampling_rate": sample_rate}
-
-    # Perform transcription
-    result = pipe(audio_input)
-    return result["text"]
+    except Exception as e:
+        print(f"Error occurred while transcribing audio file: {e}")
+        return None

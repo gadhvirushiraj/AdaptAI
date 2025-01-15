@@ -1,11 +1,15 @@
 from ..audio_transcription import transcribe_audio
 
 if __name__ == "__main__":
-    # Path to the WAV file for testing
-    wav_file = "../audio_sample.wav"  # Adjust the path as necessary for your setup
+    # Path to the audio file
+    filename = "audio_sample.mp4"
+
+    # API key for Groq
+    api_key = "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"
 
     # Call the transcription function
-    transcription = transcribe_audio(wav_file)
+    transcription = transcribe_audio.transcribe_audio_file(filename, api_key)
 
     # Print the transcription result
-    print("Transcribed Text:", transcription)
+    if transcription:
+        print("Transcription Text:", transcription.text)
