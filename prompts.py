@@ -129,3 +129,134 @@ TASK_EXTRACTION_PROMPT = """
     3. Tasks must be derived accurately based on the provided text.
     4. Do not include commentary, explanations, or extra text outside the JSON object.
     """
+
+INTERVENTION_PROMPT = """
+You are a workplace wellness assistant designed to improve an employee's mental and physical well-being. Analyze the following inputs: 
+
+1. **Stress Level**: Current stress state of the person (`stressed` or `not stressed`).  
+2. **Activity Timetable**: Hourly breakdown of the individual's activities, including:
+   - `time`: The time range (e.g., `8-9 PM`).  
+   - `desk-work`: Minutes spent on desk work.  
+   - `commuting`: Minutes spent commuting.  
+   - `eating`: Minutes spent eating.  
+   - `in-meeting`: Minutes spent in physical meetings/conversations.  
+3. **Surrounding Type**: The person's current environment (e.g., `meeting room`, `cubicle`, `office`, `cafeteria`).  
+
+#### Output:  
+Provide:
+- **Analysis**: A brief assessment of the person’s current state, highlighting issues like prolonged inactivity, lack of breaks, or skipped meals.  
+- **Interventions**: Feasible recommendations to improve well-being, considering the person’s stress level, activity history, and surroundings.
+
+### Guidelines:
+- Suggestions should align with workplace norms and respect the surrounding type.
+- Interventions must be actionable and time-conscious (e.g., 5-15 minutes).
+- Consider available resources like cafeterias, quiet spaces, or open areas.
+- Incorporate stress-reduction techniques or physical activity when necessary.
+
+### Example Format:
+**Input:**  
+- Stress Level: [stressed or not stressed]  
+- Activity Timetable:  
+  ```
+  | Time       | Desk Work (min)  | Commuting (min) | Eating (min) | In-Meeting (min)  |
+  |------------|------------------|-----------------|--------------|-------------------|
+  | X-Y PM     | XX               | XX              | XX           | XX                |
+  ```
+
+**Output: Do not changed output list of list formating, strictly** 
+[
+ "Analysis": (Brief summary of patterns/issues)
+ "Interventions": [ Immediate Action: (Recommendation based on the current location.), Follow-Up: (Actionable steps to improve well-being post-task.) ] 
+]
+"""
+
+INTERVENTION_EXAMPLES = [
+    {
+        "input": {
+            "stress_level": "stressed",
+            "activity_timetable": """
+            Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
+                8-9 AM,60,0,0,0,0
+                9-10 AM,50,0,0,10,0
+                10-11 AM,40,0,0,20,10
+                11-12 PM,60,0,0,0,5
+                """,
+            "surrounding_type": "cubicle",
+        },
+        "output": {
+            """
+            ["Analysis": "You spent the majority of your morning working at your desk and attending meetings. While you included some walking, you haven’t eaten, which could reduce energy and focus. The prolonged desk work also increases stiffness.",
+            "Interventions": [
+                Immediate Action: "Take a 10-minute break to eat a healthy snack or meal and hydrate.",
+                Follow-Up: "Stand up and stretch for 5 minutes before resuming work."]
+            ]
+            """
+        },
+    },
+    {
+        "input": {
+            "stress_level": "not stressed",
+            "activity_timetable": """
+                Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
+                7-8 AM,0,30,0,0,0
+                8-9 AM,40,0,20,0,0
+                9-10 AM,10,0,0,20,10
+                10-11 AM,30,0,0,10,20
+            """,
+            "surrounding_type": "cafeteria",
+        },
+        "output": {
+            """
+            ["Analysis": "Your schedule shows good balance with walking and commuting, but your eating habits are inconsistent. The lack of a proper meal might leave you feeling fatigued later in the day.",
+            "Interventions": [
+                Immediate Action: "Use your current time in the cafeteria to enjoy a wholesome meal.",
+                Follow-Up: "Consider packing snacks or scheduling regular breaks to eat."]
+            ]
+            """
+        },
+    },
+    {
+        "input": {
+            "stress_level": "stressed",
+            "activity_timetable": """
+                Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
+                1-2 PM,50,0,0,0,10
+                2-3 PM,30,0,0,30,5
+                3-4 PM,40,0,0,20,5
+                4-5 PM,60,0,0,0,0
+            """,
+            "surrounding_type": "office",
+        },
+        "output": {
+            """
+            ["Analysis": "Your afternoon was filled with desk work and meetings, with minimal walking and no food intake. This pattern could worsen stress and hinder productivity.",
+            "Interventions": [
+                Immediate Action: "Take a 15-minute break to eat something nutritious and walk around to refresh your mind and body.",
+                Follow-Up: "Schedule short breaks every hour to prevent stiffness and stay energized."]
+            ]
+            """
+        },
+    },
+]
+
+INTERVENTION_GEN = FewShotPromptTemplate(
+    examples=INTERVENTION_EXAMPLES,
+    example_prompt=PromptTemplate(
+        input_variables=["stress_level", "activity_timetable", "surrounding_type"],
+        template="""Input:
+            - Stress Level: {stress_level}
+            - Activity Timetable:
+            {activity_timetable}
+            - Surrounding Type: {surrounding_type}
+            Output:
+            {output}""",
+    ),
+    prefix=INTERVENTION_PROMPT,
+    suffix="""Input:
+            - Stress Level: {stress_level}
+            - Activity Timetable:
+            {activity_timetable}
+            - Surrounding Type: {surrounding_type}
+            Output:
+            """,
+)
