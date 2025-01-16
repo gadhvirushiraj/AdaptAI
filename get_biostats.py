@@ -8,10 +8,10 @@ def hrv_metrics(rpeaks):
     Compute heart rate variability (HRV) metrics from ECG data.
 
     Args:
-        - rpeaks: list of R-peak indices
+        rpeaks: list of R-peak indices
 
     Returns:
-        - dict with HRV metrics (mean RR interval, SDNN, NN50, pNN50, LF power, HF power, LF/HF ratio, heart rate)9
+        dict with HRV metrics (mean RR interval, SDNN, NN50, pNN50, LF power, HF power, LF/HF ratio, heart rate)9
     """
     sampling_rate = 125  # Hz
     rr_intervals = np.diff(rpeaks) * (1000 / sampling_rate)
@@ -59,11 +59,11 @@ def short_instance_stats(buffer_ecg, tsec=60):
     Compute HRV metrics from last tsec seconds of ECG data.
 
     Args:
-        - buffer_ecg: list of ECG data points
-        - tsec: time window in seconds
+        buffer_ecg: list of ECG data points
+        tsec: time window in seconds
 
     Returns:
-        - dict with HRV metrics
+        dict with HRV metrics
     """
 
     # TODO this can throw an error if the buffer_ecg is too small
@@ -78,10 +78,10 @@ def long_instance_stats(stored_stats, nlast_tsec=15):
     Compute the mean of each HRV metric from the last 15 stored HRV metrics.
 
     Args:
-        - stored_stats: list of HRV metrics dictionaries
+        stored_stats: list of HRV metrics dictionaries
 
     Returns:
-        - dict with mean HRV metrics
+        dict with mean HRV metrics
     """
 
     last_15_stats = stored_stats[-nlast_tsec:]
