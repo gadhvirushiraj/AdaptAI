@@ -57,10 +57,10 @@ def create_table(db_path):
         create_live_timetable = """
         CREATE TABLE timetable(
             time_interval VARCHAR(255),
-            Desk-Work VARCHAR(255),
+            Desk_Work VARCHAR(255),
             Commuting VARCHAR(255),
             Eating VARCHAR(255),
-            In-Meetin VARCHAR(255)
+            In_Meeting VARCHAR(255)
         );
         """
         cursor.execute(create_live_timetable)
@@ -101,7 +101,7 @@ def push_vision_db(
         cursor = connection.cursor()
 
         insert_query = """
-        INSERT INTO image_data (timestamp, image_desp, activity, activity_class, criticality, surrounding)
+        INSERT INTO vision (timestamp, image_desp, activity, activity_class, criticality, surrounding)
         VALUES (?, ?, ?, ?, ?, ?);
         """
         cursor.execute(
@@ -135,17 +135,17 @@ def push_to_timetable(db_path, time_interval, activity_class):
         activity_classes (list): List of activity classes for the last 60 minutes.
     """
     activity_counts = Counter(activity_class)
-    desk_work_count = activity_counts.get("Desk-Work", 0)
+    desk_work_count = activity_counts.get("Desk_Work", 0)
     commuting_count = activity_counts.get("Commuting", 0)
     eating_count = activity_counts.get("Eating", 0)
-    in_meeting_count = activity_counts.get("In-Meeting", 0)
+    in_meeting_count = activity_counts.get("In_Meeting", 0)
 
     try:
         connection = sqlite3.connect(db_path)
         cursor = connection.cursor()
 
         insert_query = """
-        INSERT INTO timetable (time_interval, Desk-Work, Commuting, Eating, In-Meeting)
+        INSERT INTO timetable (time_interval, Desk_Work, Commuting, Eating, In_Meeting)
         VALUES (?, ?, ?, ?, ?);
         """
         cursor.execute(
@@ -177,21 +177,25 @@ def main():
     create_table(db_path)
 
     # get/check camera
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        print("Error: Unable to open video capture device.")
-        return
+    # cap = cv2.VideoCapture(0)
+    # if not cap.isOpened():
+    #     print("Error: Unable to open video capture device.")
+    #     return
 
     pre_frame_act = ""
     activity_class_data = []
     last_timetable_push_time = time.time()
-
+    frame_number =0
     while True:
-        ret, frame = cap.read()
+        frame = f"./frames/frame_{frame_number}.jpg"
+        frame_number+=1
         last_capture_time = time.time()
-        if not ret:
-            print("Error: Unable to capture image.")
-            break
+        # if not ret:
+        #     print("Error: Unable to capture image.")
+        #     break
+
+        print('frame_number',frame_number)
+    
 
         img_desp = get_img_desp(client, frame, pre_frame_act)
         vision_output = get_acs(client, img_desp)
@@ -209,10 +213,10 @@ def main():
 
         # ensures 1min gap between frame capture
         time_diff = time.time() - last_capture_time
-        if time_diff < 60:
-            time.sleep(60 - time_diff)
-        # update time_table every 60 min
-        if len(activity_class_data) == 60:
+        if time_diff < 20:
+            time.sleep(20 - time_diff)
+        # update time_table every 5 min
+        if len(activity_class_data) == 5:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
