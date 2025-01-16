@@ -1,7 +1,8 @@
 """
-Pipeline to detect Action, Criticality, and Surrounding (ACS)
+Pipeline to detect Action, Criticality, and Surrounding (ACS). Making Live-Timetable.
 """
 
+from datetime import datetime
 import base64
 from prompts import IMG_DESCRIPTION_PROMPT, ACS_PROMPT
 
@@ -84,13 +85,15 @@ def get_acs(client, img_desp):
     try:
         parts = output.choices[0].message.content.strip("[]").split(" | ")
         result = {
+            "timestamp": datetime.now(),
             "activity": parts[0].strip(),
-            "criticality": parts[1].strip(),
-            "surrounding": parts[2].strip(),
+            "activity_class": parts[1].strip(),
+            "criticality": parts[2].strip(),
+            "surrounding": parts[3].strip(),
         }
     except IndexError as e:
         raise ValueError(
-            "Response format error: expected '[activity | criticality | surrounding]'."
+            "Response format error: expected '[activity | activity_class | criticality | surrounding]'."
         ) from e
 
     return result

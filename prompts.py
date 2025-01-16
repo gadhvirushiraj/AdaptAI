@@ -36,7 +36,8 @@ ACS_TASK = """
     You are tasked with analyzing a detailed description of an image captured from an egocentric perspective. 
     Your goals are:
     
-    1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions.
+    1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide a accurate guess what use seems to be doing)
+    2. **Best Suited Activity Classification** : Choose one from "Desk-Work" (any work related), "Commuting" (walking), "Eating" (having lunch, coffee break), In-Meeting (having conversation, physical meeting, presentations)
     2. **Criticality**: Determine the criticality level based on the following definitions:
         - **Low**: Minimal focus required, such as routine tasks (e.g., washing hands, drinking water).
         - **Mid**: Moderate focus required, such as walking in a variable environment or similar tasks.
@@ -45,7 +46,7 @@ ACS_TASK = """
 
     **Output Requirements**:
     - Output a LIST with | as seperator, do not add any other text just the list
-    - Each key must correspond to the specified categories: `activity`, `criticality`, and `surrounding`.
+    - Each key must correspond to the specified categories: `activity`, 'activity_class', `criticality`, and `surrounding`.
     - Use concise, specific descriptions while ensuring completeness and relevance.
     """
 
@@ -54,30 +55,35 @@ ACS_EXAMPLES = [
     {
         "description": "The person is sitting at a desk with a laptop open, typing on the keyboard. A cup of coffee is nearby, and there are papers scattered around.",
         "activity": "typing on a laptop",
+        "activity_class": "Desk-Work",
         "criticality": "Mid",
         "surrounding": "office desk with papers and a coffee cup",
     },
     {
         "description": "The person is walking through a corridor while looking down at their phone. The hallway is well-lit with doors on either side.",
         "activity": "walking while using a phone",
+        "activity_class": "Commuting",
         "criticality": "Mid",
         "surrounding": "office hallway with doors on both sides",
     },
     {
         "description": "The individual is standing near a whiteboard, pointing to a diagram while speaking to a group of seated colleagues.",
         "activity": "presenting to colleagues",
+        "activity_class": "In-Meeting",
         "criticality": "High",
         "surrounding": "meeting room with a whiteboard and seated audience",
     },
     {
-        "description": "The person is using a copy machine in a corner of the office, placing papers into the feeder.",
+        "description": "The person is using a copy machine in office, placing papers into the feeder.",
         "activity": "using a copy machine",
+        "activity_class": "Desk-Work",
         "criticality": "Low",
         "surrounding": "office corner with a copy machine",
     },
     {
         "description": "The individual is in a video conference, wearing headphones, and taking notes on a notepad.",
         "activity": "participating in a video conference",
+        "activity_class": "Desk-Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",
     },
@@ -88,7 +94,7 @@ ACS_EXAMPLE_PROMPT = PromptTemplate(
     template="""**Description**:
     {description}
     **Output**:
-    [{activity} | {criticality} | {surrounding}]
+    [{activity} | {activity_class} | {criticality} | {surrounding}]
     """,
 )
 
@@ -101,25 +107,25 @@ ACS_PROMPT = FewShotPromptTemplate(
 )
 
 TASK_EXTRACTION_PROMPT = """
-You are an expert in task analysis. Your ONLY purpose is to extract actionable tasks from the provided transcribed speech and return them in the specified JSON format.
+    You are an expert in task analysis. Your ONLY purpose is to extract actionable tasks from the provided transcribed speech and return them in the specified JSON format.
 
-TASK EXTRACTION PARAMETERS:
-1. Identify actionable tasks mentioned in the transcribed text.
-2. Ensure each task is clear, concise, and actionable.
+    TASK EXTRACTION PARAMETERS:
+    1. Identify actionable tasks mentioned in the transcribed text.
+    2. Ensure each task is clear, concise, and actionable.
 
-OUTPUT FORMAT:
-Provide a JSON object with the following structure:
-{
-    "tasks": [
-        "Task 1",
-        "Task 2",
-        "Task 3"
-    ]
-}
+    OUTPUT FORMAT:
+    Provide a JSON object with the following structure:
+    {
+        "tasks": [
+            "Task 1",
+            "Task 2",
+            "Task 3"
+        ]
+    }
 
-RULES:
-1. Only return the JSON object.
-2. Ensure the JSON is valid and does not include any additional text or formatting.
-3. Tasks must be derived accurately based on the provided text.
-4. Do not include commentary, explanations, or extra text outside the JSON object.
-"""
+    RULES:
+    1. Only return the JSON object.
+    2. Ensure the JSON is valid and does not include any additional text or formatting.
+    3. Tasks must be derived accurately based on the provided text.
+    4. Do not include commentary, explanations, or extra text outside the JSON object.
+    """
