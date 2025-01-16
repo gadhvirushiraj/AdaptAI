@@ -7,7 +7,7 @@ import base64
 from prompts import IMG_DESCRIPTION_PROMPT, ACS_PROMPT
 
 
-def get_img_desp(client, img_path, pre_frame_act):
+def get_img_desp(client, img, pre_frame_act):
     """
     VLM (Vision-Language Model) calls to describe the POV (point-of-view) view in detail.
 
@@ -20,12 +20,12 @@ def get_img_desp(client, img_path, pre_frame_act):
         str: A detailed description of the image, combining the POV information
              and pre-frame context.
     """
-
-    try:
-        with open(img_path, "rb") as image_file:
-            img = base64.b64encode(image_file.read()).decode("utf-8")
-    except Exception as e:
-        raise ValueError("Error: couldn't encode the image correctly") from e
+    if isinstance(img, str):
+        try:
+            with open(img, "rb") as image_file:
+                img = base64.b64encode(image_file.read()).decode("utf-8")
+        except Exception as e:
+            raise ValueError("Error: couldn't encode the image correctly") from e
 
     query = IMG_DESCRIPTION_PROMPT.format(pre_frame_act=pre_frame_act)
     output = client.chat.completions.create(
