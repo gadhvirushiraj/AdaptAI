@@ -63,7 +63,6 @@ def create_table(db_path):
                 Eating VARCHAR(255),
                 In_Meeting VARCHAR(255),
                 pNN50 VARCHAR(255),
-                hr_interval VARCHAR(255),
                 heart_rate VARCHAR(255)
             );
             """
@@ -72,12 +71,9 @@ def create_table(db_path):
             create_ecg_query = """
             CREATE TABLE IF NOT EXISTS hrv_data (
                 mean_rr REAL,
-                sdnn REAL,
-                nn50 INTEGER,
                 pnn50 REAL,
-                lf_power REAL,
-                hf_power REAL,
-                lf_hf_ratio REAL,
+                pnn30 REAL,
+                pnn20 REAL,
                 heart_rate REAL
             );
             """
@@ -95,21 +91,37 @@ def create_table(db_path):
         print(f"An error occurred: {e}")
 
 
-def fetch_ecg(db_path):
+def fetch_ecg(db_path,instance):
     """Fetch ECG data from the database."""
-    try:
-        with sqlite3.connect(db_path) as connection:
-            cursor = connection.cursor()
-            query = """
-            SELECT * FROM data_ecg 
-            WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 1200000
-            AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
-            """
-            cursor.execute(query)
-            return cursor.fetchall()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return []
+    if instance == 'short':
+        try:
+            with sqlite3.connect(db_path) as connection:
+                cursor = connection.cursor()
+                query = """
+                SELECT * FROM data_ecg 
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 60000
+                AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
+                """
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
+    
+    elif instance == 'long':
+        try:
+            with sqlite3.connect(db_path) as connection:
+                cursor = connection.cursor()
+                query = """
+                SELECT * FROM data_ecg 
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 3600000
+                AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
+                """
+                cursor.execute(query)
+                return cursor.fetchall()
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return []
 
 
 def push_to_table(query, params, db_path):
@@ -212,23 +224,20 @@ def vision_pipeline(client, db_path):
             db_path,
         )
 
-        ecg_data = fetch_ecg(db_path)
+        ecg_data = fetch_ecg(db_path,'short')
         json_hrv = short_instance_stats(ecg_data)
 
         push_to_table(
             """
-            INSERT INTO hrv_data (mean_rr, sdnn, nn50, pnn50, lf_power, hf_power, lf_hf_ratio, heart_rate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            INSERT INTO hrv_data (mean_rr, pnn50, pnn30, pnn20, heart_rate)
+            VALUES (?, ?, ?, ?, ?);
             """,
             (
                 json_hrv["mean_rr"],
-                json_hrv["sdnn"],
-                json_hrv["nn50"],
                 json_hrv["pnn50"],
-                json_hrv["lf_power"],
-                json_hrv["hf_power"],
-                json_hrv["lf_hf_ratio"],
-                json_hrv["heart_rate"],
+                json_hrv["pnn30"],
+                json_hrv["pnn20"],
+                json_hrv["hr"],
             ),
             db_path,
         )
@@ -241,13 +250,13 @@ def vision_pipeline(client, db_path):
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
-            long_hrv = long_instance_stats(ecg_data)
+            long_hrv = long_instance_stats(ecg_data,'short')
             end_time = time.strftime("%H:%M", time.localtime(time.time()))
             time_interval = f"{start_time} - {end_time}"
             push_to_table(
                 """
-                INSERT INTO timetable (time_interval, Desk_Work, Commuting, Eating, In_Meeting, pNN50, hr_interval, heart_rate)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO timetable (time_interval, Desk_Work, Commuting, Eating, In_Meeting, pNN50, heart_rate)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     time_interval,
@@ -255,13 +264,13 @@ def vision_pipeline(client, db_path):
                     Counter(activity_class_data).get("Commuting", 0),
                     Counter(activity_class_data).get("Eating", 0),
                     Counter(activity_class_data).get("In_Meeting", 0),
-                    long_hrv["pNN50"],
-                    long_hrv["hr_interval"],
-                    long_hrv["heart_rate"],
+                    long_hrv["pnn50"],
+                    long_hrv["hr"],
                 ),
                 db_path,
             )
             live_timetable = get_live_timetable(db_path)
+            intervent_pipeline(client, live_timetable, surrounding, stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
 
