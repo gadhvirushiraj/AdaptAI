@@ -269,8 +269,14 @@ def vision_pipeline(client, db_path):
                 ),
                 db_path,
             )
+            pnn50 = long_hrv["pnn50"]
+            stress_level = (
+                "high" if pnn50 < 20 else
+                "moderate" if 20 <= pnn50 < 50 else
+                "low"
+            )
             live_timetable = get_live_timetable(db_path)
-            intervent_pipeline(client, live_timetable, surrounding, stress_level)
+            intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
 
