@@ -73,7 +73,7 @@ def short_instance_stats(buffer_ecg, tsec=60):
     return hrv_metrics(output[2])
 
 
-def long_instance_stats(stored_stats, nlast_tsec=15):
+def long_instance_stats(ecg_input, nlast_tsec=3600):
     """
     Compute the mean of each HRV metric from the last 15 stored HRV metrics.
 
@@ -84,13 +84,10 @@ def long_instance_stats(stored_stats, nlast_tsec=15):
         dict with mean HRV metrics
     """
 
-    last_15_stats = stored_stats[-nlast_tsec:]
-    metrics_sum = {key: 0 for key in last_15_stats[0].keys()}
+    last_tsec = ecg_input[-nlast_tsec * 125 :]  # Last tsec seconds of ECG data
+    output = ecg.ecg(signal=last_tsec, sampling_rate=125, show=False)
 
-    for stats in last_15_stats:
-        for key, value in stats.items():
-            metrics_sum[key] += value
+    hrv_out = hrv_metrics(output[2])
+    stats_out = {"pNN50":hrv_out['pnn50'],"hr_interval":f"{min(output[6])} - {max(output[6])}","heart_rate":hrv_out['heart_rate']}
 
-    metrics_mean = {key: metrics_sum[key] / len(last_15_stats) for key in metrics_sum}
-
-    return metrics_mean
+    return stats_out
