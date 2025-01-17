@@ -1,12 +1,13 @@
 """
-Pipeline to detect Action, Criticality, and Surrounding (ACS)
+Pipeline to detect Action, Criticality, and Surrounding (ACS). Making Live-Timetable.
 """
 
+from datetime import datetime
 import base64
 from prompts import IMG_DESCRIPTION_PROMPT, ACS_PROMPT
 
 
-def get_img_desp(client, img_path, pre_frame_act):
+def get_img_desp(client, img, pre_frame_act):
     """
     VLM (Vision-Language Model) calls to describe the POV (point-of-view) view in detail.
 
@@ -19,12 +20,12 @@ def get_img_desp(client, img_path, pre_frame_act):
         str: A detailed description of the image, combining the POV information
              and pre-frame context.
     """
-
-    try:
-        with open(img_path, "rb") as image_file:
-            img = base64.b64encode(image_file.read()).decode("utf-8")
-    except Exception as e:
-        raise ValueError("Error: couldn't encode the image correctly") from e
+    if isinstance(img, str):
+        try:
+            with open(img, "rb") as image_file:
+                img = base64.b64encode(image_file.read()).decode("utf-8")
+        except Exception as e:
+            raise ValueError("Error: couldn't encode the image correctly") from e
 
     query = IMG_DESCRIPTION_PROMPT.format(pre_frame_act=pre_frame_act)
     output = client.chat.completions.create(
@@ -84,13 +85,15 @@ def get_acs(client, img_desp):
     try:
         parts = output.choices[0].message.content.strip("[]").split(" | ")
         result = {
+            "timestamp": datetime.now(),
             "activity": parts[0].strip(),
-            "criticality": parts[1].strip(),
-            "surrounding": parts[2].strip(),
+            "activity_class": parts[1].strip(),
+            "criticality": parts[2].strip(),
+            "surrounding": parts[3].strip(),
         }
     except IndexError as e:
         raise ValueError(
-            "Response format error: expected '[activity | criticality | surrounding]'."
+            "Response format error: expected '[activity | activity_class | criticality | surrounding]'."
         ) from e
 
     return result
