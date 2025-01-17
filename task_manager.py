@@ -22,8 +22,7 @@ def initialize_database(db_name="tasks.db"):
             """
             CREATE TABLE IF NOT EXISTS tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                task TEXT NOT NULL,
-                urgency TEXT NOT NULL
+                task TEXT NOT NULL
             )
         """
         )
@@ -35,7 +34,7 @@ def initialize_database(db_name="tasks.db"):
         print(f"Error initializing database: {e}")
 
 
-def add_task(task, urgency, db_name="tasks.db"):
+def add_task(task, db_name="tasks.db"):
     """
     Add a new task with its urgency to the database.
 
@@ -51,12 +50,12 @@ def add_task(task, urgency, db_name="tasks.db"):
 
         # Insert the task into the database
         cursor.execute(
-            "INSERT INTO tasks (task, urgency) VALUES (?, ?)", (task, urgency)
+            "INSERT INTO tasks (task) VALUES (?)", (task)
         )
 
         conn.commit()
         conn.close()
-        print(f"Task '{task}' with urgency '{urgency}' added successfully.")
+        print(f"Task '{task}' added successfully.")
     except Exception as e:
         print(f"Error adding task: {e}")
 
