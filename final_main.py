@@ -63,7 +63,6 @@ def create_table(db_path):
                 Eating VARCHAR(255),
                 In_Meeting VARCHAR(255),
                 pNN50 VARCHAR(255),
-                hr_interval VARCHAR(255),
                 heart_rate VARCHAR(255)
             );
             """
@@ -230,7 +229,7 @@ def vision_pipeline(client, db_path):
 
         push_to_table(
             """
-            INSERT INTO hrv_data (mean_rr, pnn50, pnn30, pnn20, hr)
+            INSERT INTO hrv_data (mean_rr, pnn50, pnn30, pnn20, heart_rate)
             VALUES (?, ?, ?, ?, ?);
             """,
             (
@@ -256,8 +255,8 @@ def vision_pipeline(client, db_path):
             time_interval = f"{start_time} - {end_time}"
             push_to_table(
                 """
-                INSERT INTO timetable (time_interval, Desk_Work, Commuting, Eating, In_Meeting, pNN50, hr_interval, heart_rate)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO timetable (time_interval, Desk_Work, Commuting, Eating, In_Meeting, pNN50, heart_rate)
+                VALUES (?, ?, ?, ?, ?, ?, ?);
                 """,
                 (
                     time_interval,
@@ -271,6 +270,7 @@ def vision_pipeline(client, db_path):
                 db_path,
             )
             live_timetable = get_live_timetable(db_path)
+            intervent_pipeline(client, live_timetable, surrounding, stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
 
