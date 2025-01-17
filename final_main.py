@@ -7,9 +7,11 @@ from groq import Groq
 from acs_detection import get_img_desp, get_acs
 from get_biostats import short_instance_stats, long_instance_stats
 from task_extractor import audio_transcription, extract_task
+from intervent import intervent_gen
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
+
 
 def get_client():
     """
@@ -25,6 +27,7 @@ def get_client():
         api_key=os.environ.get("GROQ_API_KEY"),
     )
     return client
+
 
 def create_table(db_path):
     """
@@ -91,6 +94,7 @@ def create_table(db_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
 def fetch_ecg(db_path):
     """Fetch ECG data from the database."""
     try:
@@ -107,6 +111,7 @@ def fetch_ecg(db_path):
         print(f"An error occurred: {e}")
         return []
 
+
 def push_to_table(query, params, db_path):
     """Thread-safe function to push data to the database."""
     with db_lock:
@@ -118,13 +123,68 @@ def push_to_table(query, params, db_path):
         except Exception as e:
             print(f"An error occurred while inserting data: {e}")
 
+
+def read_from_table(query, db_path):
+    """Thread-safe function to read data from the database."""
+    with db_lock:
+        try:
+            with sqlite3.connect(db_path) as connection:
+                cursor = connection.cursor()
+                cursor.execute(query)
+                results = cursor.fetchall()
+                return results
+        except Exception as e:
+            print(f"An error occurred while reading data: {e}")
+            return None
+
+
+def get_live_timetable(db_path):
+    table = read_from_table(
+        "SELECT time_interval, Desk_Work, Commuting, Eating, In_Meeting FROM timetable",
+        db_path,
+    )
+    header = "time_interval,Desk_Work,Commuting,Eating,In_Meeting\n"
+    rows = [",".join(map(str, row)) for row in table]
+
+    return header + "\n".join(rows)
+
+
+def intervent_pipeline(client, live_timetable, surrounding, stress_level):
+    if live_timetable is not None:
+        intervent = intervent_gen(client, stress_level, live_timetable, surrounding)
+
+        # Display the intervent message
+        print(f"\nGenerated Intervention:\n{intervent}")
+
+        # Prompt the user for a yes/no input
+        while True:
+            user_input = (
+                input("Do you accept this intervention? (yes/no): ").strip().lower()
+            )
+            if user_input in ["yes", "no"]:
+                break
+            print("Invalid input. Please type 'yes' or 'no'.")
+
+        # Handle the response
+        if user_input == "yes":
+            print("You accepted the intervention.")
+            # Add your logic for 'yes' here
+        else:
+            print("You declined the intervention.")
+            # Add your logic for 'no' here
+    else:
+        return
+
+
 def vision_pipeline(client, db_path):
     """Thread function to handle vision pipeline."""
+
     create_table(db_path)
     pre_frame_act = ""
     activity_class_data = []
     last_timetable_push_time = time.time()
     frame_number = 0
+    live_timetable = ""
 
     while True:
         frame = f"./frames/frame_{frame_number}.jpg"
@@ -149,7 +209,7 @@ def vision_pipeline(client, db_path):
                 vision_output["criticality"],
                 vision_output["surrounding"],
             ),
-            db_path
+            db_path,
         )
 
         ecg_data = fetch_ecg(db_path)
@@ -161,10 +221,16 @@ def vision_pipeline(client, db_path):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?);
             """,
             (
-                json_hrv['mean_rr'], json_hrv['sdnn'], json_hrv['nn50'], json_hrv['pnn50'],
-                json_hrv['lf_power'], json_hrv['hf_power'], json_hrv['lf_hf_ratio'], json_hrv['heart_rate']
+                json_hrv["mean_rr"],
+                json_hrv["sdnn"],
+                json_hrv["nn50"],
+                json_hrv["pnn50"],
+                json_hrv["lf_power"],
+                json_hrv["hf_power"],
+                json_hrv["lf_hf_ratio"],
+                json_hrv["heart_rate"],
             ),
-            db_path
+            db_path,
         )
 
         time_diff = time.time() - last_capture_time
@@ -172,7 +238,9 @@ def vision_pipeline(client, db_path):
             time.sleep(20 - time_diff)
 
         if len(activity_class_data) == 5:
-            start_time = time.strftime("%H:%M", time.localtime(last_timetable_push_time))
+            start_time = time.strftime(
+                "%H:%M", time.localtime(last_timetable_push_time)
+            )
             long_hrv = long_instance_stats(ecg_data)
             end_time = time.strftime("%H:%M", time.localtime(time.time()))
             time_interval = f"{start_time} - {end_time}"
@@ -187,12 +255,16 @@ def vision_pipeline(client, db_path):
                     Counter(activity_class_data).get("Commuting", 0),
                     Counter(activity_class_data).get("Eating", 0),
                     Counter(activity_class_data).get("In_Meeting", 0),
-                    long_hrv['pNN50'], long_hrv['hr_interval'], long_hrv['heart_rate']
+                    long_hrv["pNN50"],
+                    long_hrv["hr_interval"],
+                    long_hrv["heart_rate"],
                 ),
-                db_path
+                db_path,
             )
+            live_timetable = get_live_timetable(db_path)
             last_timetable_push_time = time.time()
             activity_class_data = []
+
 
 def audio_pipeline(client, db_path):
     """Thread function to handle audio transcription and task extraction."""
@@ -204,15 +276,12 @@ def audio_pipeline(client, db_path):
         extracted_tasks = extract_task(client, transcription)
 
         for task in extracted_tasks:
-            push_to_table(
-                "INSERT INTO tasks (task) VALUES (?);",
-                (task,),
-                db_path
-            )
+            push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
 
         time_diff = time.time() - last_capture_time
         if time_diff < 20:
             time.sleep(20 - time_diff)
+
 
 def main():
     """Main function to orchestrate multithreading."""
@@ -227,6 +296,7 @@ def main():
 
     vision_thread.join()
     audio_thread.join()
+
 
 if __name__ == "__main__":
     main()
