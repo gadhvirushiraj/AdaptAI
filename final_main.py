@@ -7,7 +7,7 @@ from groq import Groq
 from acs_detection import get_img_desp, get_acs
 from get_biostats import short_instance_stats, long_instance_stats
 from task_extractor import audio_transcription, extract_task
-from intervent import intervent_gen
+from intervent import intervention_gen
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
@@ -98,7 +98,7 @@ def fetch_ecg(db_path,instance):
             with sqlite3.connect(db_path) as connection:
                 cursor = connection.cursor()
                 query = """
-                SELECT * FROM data_ecg 
+                SELECT * FROM ecg_data 
                 WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 60000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
                 """
@@ -163,7 +163,7 @@ def get_live_timetable(db_path):
 
 def intervent_pipeline(client, live_timetable, surrounding, stress_level):
     if live_timetable is not None:
-        intervent = intervent_gen(client, stress_level, live_timetable, surrounding)
+        intervent = intervention_gen(client, stress_level, live_timetable, surrounding)
 
         # Display the intervent message
         print(f"\nGenerated Intervention:\n{intervent}")
@@ -199,7 +199,7 @@ def vision_pipeline(client, db_path):
     live_timetable = ""
 
     while True:
-        frame = f"./frames/frame_{frame_number}.jpg"
+        frame = rf"C:\Users\shreyas.ramachandran\Downloads\projects\workplace-productivity-and-well-being\data\pov\frames\frame_{frame_number:04d}.jpg"
         frame_number += 1
         last_capture_time = time.time()
 
@@ -208,6 +208,7 @@ def vision_pipeline(client, db_path):
 
         activity_class_data.append(vision_output["activity"])
 
+        print('Frame number :',frame_number)
         push_to_table(
             """
             INSERT INTO vision (timestamp, image_desp, activity, activity_class, criticality, surrounding)
@@ -286,10 +287,11 @@ def audio_pipeline(client, db_path):
     while True:
         last_capture_time = time.time()
         current_time = time.strftime("%Y%m%d_%H%M%S")
-        audio_file = f"{current_time}.wav"
+        audio_file = r"C:\Users\shreyas.ramachandran\Downloads\audio_sample.mp4"
+        
         transcription = audio_transcription(client, audio_file)
         extracted_tasks = extract_task(client, transcription)
-
+        
         for task in extracted_tasks:
             push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
 

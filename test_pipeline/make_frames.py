@@ -7,11 +7,11 @@ import cv2
 
 
 # create output folder if it doesn't exist
-output_folder = "frames"
+output_folder = r"C:\Users\shreyas.ramachandran\Downloads\projects\workplace-productivity-and-well-being\data\pov\frames"
 os.makedirs(output_folder, exist_ok=True)
 
 # load video
-video_path = "./test_pipeline/pov.mp4"
+video_path = r"C:\Users\shreyas.ramachandran\Downloads\projects\workplace-productivity-and-well-being\data\pov\20250117_215245.mp4"
 cap = cv2.VideoCapture(video_path)
 
 if not cap.isOpened():
@@ -20,7 +20,7 @@ if not cap.isOpened():
 
 # get fps and calculate frame interval
 fps = cap.get(cv2.CAP_PROP_FPS)
-frame_interval = int(fps * 5)
+frame_interval = int(fps * 1)
 
 frame_count = 0
 saved_frame_count = 0
