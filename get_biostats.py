@@ -1,93 +1,120 @@
+from datetime import datetime, timedelta
+import pytz
 import numpy as np
-import pandas as pd
-from biosppy.signals import ecg
+from scipy.signal import find_peaks
 
-
-def hrv_metrics(rpeaks):
+def short_instance_stats(ecg_input, tsec=60):
     """
-    Compute heart rate variability (HRV) metrics from ECG data.
+    Compute HRV metrics from the last tsec seconds (default 1 minute) of ECG data.
 
     Args:
-        rpeaks: list of R-peak indices
+        ecg_input: list of ECG data points
+        tsec: time window in seconds (default: 60 seconds)
 
     Returns:
-        dict with HRV metrics (mean RR interval, SDNN, NN50, pNN50, LF power, HF power, LF/HF ratio, heart rate)9
+        dict with HRV metrics, start and end intervals
     """
-    sampling_rate = 125  # Hz
-    rr_intervals = np.diff(rpeaks) * (1000 / sampling_rate)
+    # Current IST time
+    ist = pytz.timezone('Asia/Kolkata')
+    end_interval = datetime.now(ist)
+    start_interval = end_interval - timedelta(seconds=tsec)
 
-    # Time-domain metrics
+    # Ensure the buffer has enough data
+    # required_data_points = tsec * 125  # Assuming 125 Hz sampling rate
+    # if len(ecg_input) < required_data_points:
+    #     raise ValueError("ECG input buffer is too small for the requested time window.")
+
+    # # Select the last tsec seconds of data
+    # ecg_input = ecg_input[-required_data_points:]
+
+    # Extract the ECG signal and sensor timestamps
+    ecg_signal = np.array([row[3] for row in ecg_input])
+    timestamps_sensor = np.array([int(row[2]) for row in ecg_input])  # Use timestamp_sensor
+
+    # Detect R-peaks
+    peaks, _ = find_peaks(ecg_signal, height=0.4)  # Adjust 'height' as needed
+
+    # Calculate RR intervals (differences between consecutive peaks in time)
+    rr_intervals = np.diff(timestamps_sensor[peaks])  # RR intervals in milliseconds
+
+    # Compute HRV metrics
+    pnn50 = np.sum(rr_intervals > 50) / len(rr_intervals) * 100
+    pnn30 = np.sum(rr_intervals > 30) / len(rr_intervals) * 100
+    pnn20 = np.sum(rr_intervals > 20) / len(rr_intervals) * 100
+
+    # Mean RR interval and Heart Rate (HR)
     mean_rr = np.mean(rr_intervals)
-    sdnn = np.std(rr_intervals)
-    nn50 = np.sum(
-        np.abs(np.diff(rr_intervals)) > 50
-    )  # Number of pairs of successive RR intervals > 50ms
-    pnn50 = (nn50 / len(rr_intervals)) * 100 if len(rr_intervals) > 0 else 0.0
+    hr = 60000 / mean_rr
 
-    # Frequency-domain metrics using FFT
-    fft_freqs = np.fft.rfftfreq(len(rr_intervals), d=mean_rr / 1000)
-    fft_power = np.abs(np.fft.rfft(rr_intervals)) ** 2
-
-    # Frequency bands (in Hz)
-    lf_band = (0.04, 0.15)
-    hf_band = (0.15, 0.4)
-
-    # Compute power in LF and HF bands
-    lf_power = np.sum(fft_power[(fft_freqs >= lf_band[0]) & (fft_freqs < lf_band[1])])
-    hf_power = np.sum(fft_power[(fft_freqs >= hf_band[0]) & (fft_freqs < hf_band[1])])
-
-    # LF/HF ratio
-    lf_hf_ratio = lf_power / hf_power if hf_power != 0 else np.nan
-
-    # heart rate
-    heart_rate = 60000 / mean_rr
-
-    return {
-        "mean_rr": mean_rr,
-        "sdnn": sdnn,
-        "nn50": nn50,
-        "pnn50": pnn50,
-        "lf_power": lf_power,
-        "hf_power": hf_power,
-        "lf_hf_ratio": lf_hf_ratio,
-        "heart_rate": heart_rate,
+    # Include start and end intervals in the result
+    result = {
+        "metrics": {
+            "pnn50": pnn50,
+            "pnn30": pnn30,
+            "pnn20": pnn20,
+            "mean_rr": mean_rr,
+            "hr": hr
+        },
+        "start_interval": start_interval.strftime('%Y-%m-%d %H:%M:%S %Z'),
+        "end_interval": end_interval.strftime('%Y-%m-%d %H:%M:%S %Z')
     }
 
+    return result
 
-def short_instance_stats(buffer_ecg, tsec=60):
+
+def long_instance_stats(ecg_input):
     """
-    Compute HRV metrics from last tsec seconds of ECG data.
+    Compute HRV metrics from the last 1 hour of ECG data.
 
     Args:
-        buffer_ecg: list of ECG data points
-        tsec: time window in seconds
+        ecg_input: list of ECG data points
 
     Returns:
-        dict with HRV metrics
+        dict with HRV metrics, start and end intervals
     """
+    # Current IST time
+    ist = pytz.timezone('Asia/Kolkata')
+    end_interval = datetime.now(ist)
+    start_interval = end_interval - timedelta(hours=1)
 
-    # TODO this can throw an error if the buffer_ecg is too small
-    last_tsec = buffer_ecg[-tsec * 125 :]  # Last tsec seconds of ECG data
-    output = ecg.ecg(signal=last_tsec, sampling_rate=125, show=False)
+    # Ensure the buffer has enough data
+    # required_data_points = 60 * 60 * 125  # 1 hour of data at 125 Hz sampling rate
+    # if len(ecg_input) < required_data_points:
+    #     raise ValueError("ECG input buffer is too small for the requested time window.")
 
-    return hrv_metrics(output[2])
+    # # Select the last 1 hour of data
+    # ecg_input = ecg_input[-required_data_points:]
 
+    # Extract the ECG signal and sensor timestamps
+    ecg_signal = np.array([row[3] for row in ecg_input])
+    timestamps_sensor = np.array([int(row[2]) for row in ecg_input])  # Use timestamp_sensor
 
-def long_instance_stats(ecg_input, nlast_tsec=3600):
-    """
-    Compute the mean of each HRV metric from the last 15 stored HRV metrics.
+    # Detect R-peaks
+    peaks, _ = find_peaks(ecg_signal, height=0.4)  # Adjust 'height' as needed
 
-    Args:
-        stored_stats: list of HRV metrics dictionaries
+    # Calculate RR intervals (differences between consecutive peaks in time)
+    rr_intervals = np.diff(timestamps_sensor[peaks])  # RR intervals in milliseconds
 
-    Returns:
-        dict with mean HRV metrics
-    """
+    # Compute HRV metrics
+    pnn50 = np.sum(rr_intervals > 50) / len(rr_intervals) * 100
+    pnn30 = np.sum(rr_intervals > 30) / len(rr_intervals) * 100
+    pnn20 = np.sum(rr_intervals > 20) / len(rr_intervals) * 100
 
-    last_tsec = ecg_input[-nlast_tsec * 125 :]  # Last tsec seconds of ECG data
-    output = ecg.ecg(signal=last_tsec, sampling_rate=125, show=False)
+    # Mean RR interval and Heart Rate (HR)
+    mean_rr = np.mean(rr_intervals)
+    hr = 60000 / mean_rr
 
-    hrv_out = hrv_metrics(output[2])
-    stats_out = {"pNN50":hrv_out['pnn50'],"hr_interval":f"{min(output[6])} - {max(output[6])}","heart_rate":hrv_out['heart_rate']}
+    # Include start and end intervals in the result
+    result = {
+        "metrics": {
+            "pnn50": pnn50,
+            "pnn30": pnn30,
+            "pnn20": pnn20,
+            "mean_rr": mean_rr,
+            "hr": hr
+        },
+        "start_interval": start_interval.strftime('%Y-%m-%d %H:%M:%S %Z'),
+        "end_interval": end_interval.strftime('%Y-%m-%d %H:%M:%S %Z')
+    }
 
-    return stats_out
+    return result
