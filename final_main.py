@@ -265,10 +265,12 @@ def vision_pipeline(client, db_path):
         )
 
         time_diff = time.time() - last_capture_time
+        # For individual frames
         if time_diff < 20:
             time.sleep(20 - time_diff) 
 
-        if len(activity_class_data) == 2:
+        # For collective frame processing
+        if len(activity_class_data) == 30:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
@@ -305,9 +307,10 @@ def vision_pipeline(client, db_path):
             activity_class_data = []
 
 class AudioRecorder:
-    def __init__(self, samplerate=48000, channels=2):
+    def __init__(self, samplerate=48000, channels=2, device_index=11):
         self.samplerate = samplerate
         self.channels = channels
+        self.device_index = device_index
         self.buffer = np.array([], dtype=np.int16)
         self.lock = threading.Lock()
         self.is_recording = False
@@ -358,7 +361,7 @@ class AudioRecorder:
 
 
 
-def audio_pipeline(client, db_path, recorder, duration=15):
+def audio_pipeline(client, db_path, recorder, duration=60):
     """
     Function to process accumulated audio every 15 seconds.
 
