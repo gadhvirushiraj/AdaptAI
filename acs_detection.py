@@ -20,12 +20,11 @@ def get_img_desp(client, img, pre_frame_act):
         str: A detailed description of the image, combining the POV information
              and pre-frame context.
     """
-    if isinstance(img, str):
-        try:
-            with open(img, "rb") as image_file:
-                img = base64.b64encode(image_file.read()).decode("utf-8")
-        except Exception as e:
-            raise ValueError("Error: couldn't encode the image correctly") from e
+    
+    try:
+        img = base64.b64encode(img).decode("utf-8")
+    except Exception as e:
+        raise ValueError("Error: couldn't encode the image correctly") from e
 
     query = IMG_DESCRIPTION_PROMPT.format(pre_frame_act=pre_frame_act)
     output = client.chat.completions.create(

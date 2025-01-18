@@ -8,6 +8,8 @@ from acs_detection import get_img_desp, get_acs
 from get_biostats import short_instance_stats, long_instance_stats
 from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
+import cv2
+import json
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
@@ -99,7 +101,7 @@ def fetch_ecg(db_path,instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 9000
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 30000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
@@ -114,7 +116,7 @@ def fetch_ecg(db_path,instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 45000
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 60000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
@@ -198,18 +200,26 @@ def vision_pipeline(client, db_path):
     frame_number = 0
     live_timetable = None
 
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        print("Error: Unable to open video capture device.")
+        return
+    pre_frame_act = ""
+    activity_class_data = []
+    last_timetable_push_time = time.time()
     while True:
-        frame = f"./sixty_frames/frame_{frame_number:04d}.jpg"
-        frame_number += 1
+        ret, frame = cap.read()
+        _, buffer = cv2.imencode('.jpg', frame)
         last_capture_time = time.time()
-
-        print('frame_number', frame_number)
-
-        img_desp = get_img_desp(client, frame, pre_frame_act)
+        if not ret:
+            print("Error: Unable to capture image.")
+            break
+        img_desp = get_img_desp(client, buffer, pre_frame_act)
         vision_output = get_acs(client, img_desp)
 
         activity_class_data.append(vision_output["activity_class"])
 
+        print('Frame number :',frame_number)
         push_to_table(
             """
             INSERT INTO vision (timestamp, image_desp, activity, activity_class, criticality, surrounding)
@@ -249,7 +259,7 @@ def vision_pipeline(client, db_path):
         if time_diff < 20:
             time.sleep(20 - time_diff) 
 
-        if len(activity_class_data) == 3:
+        if len(activity_class_data) == 2:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
@@ -280,7 +290,7 @@ def vision_pipeline(client, db_path):
                 "low"
             )
             live_timetable = get_live_timetable(db_path)
-            print('timetable', live_timetable)
+            # print('timetable', live_timetable)
             intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
@@ -291,10 +301,11 @@ def audio_pipeline(client, db_path):
     while True:
         last_capture_time = time.time()
         current_time = time.strftime("%Y%m%d_%H%M%S")
-        audio_file = f"{current_time}.wav"
+        audio_file = r"C:\Users\shreyas.ramachandran\Downloads\audio_sample.mp4"
+        
         transcription = audio_transcription(client, audio_file)
         extracted_tasks = extract_task(client, transcription)
-
+        
         for task in extracted_tasks:
             push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
 
