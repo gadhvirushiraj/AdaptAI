@@ -52,7 +52,17 @@ def extract_task(client, audio_transcription):
         stream=False,
     )
 
-    tasks = json.loads(chat_completion.choices[0].message.content)
+    content = chat_completion.choices[0].message.content
+    if not content:
+        print("Error: Response content is empty.")
+        return []
+
+    try:
+        tasks = json.loads(content)
+    except json.JSONDecodeError as e:
+        print(f"Error decoding JSON: {e}")
+        print("Response content was:", content)
+        return []
 
     # Return the generated content
     return tasks

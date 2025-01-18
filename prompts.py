@@ -12,6 +12,7 @@ IMG_DESCRIPTION_PROMPT = PromptTemplate(
     1. **Direct Observation**:
        - Describe only what is directly observable from the given perspective. 
        - Include visible actions and details of the surroundings without speculating beyond the provided visual context.
+       - If you see that the person is doing something, describe the task in detail. If there are a number of tasks describe them in detail.
 
     2. **Environmental Details**:
        - Note specific aspects such as:
@@ -36,7 +37,7 @@ ACS_TASK = """
     You are tasked with analyzing a detailed description of an image captured from an egocentric perspective. 
     Your goals are:
     
-    1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide a accurate guess what use seems to be doing)
+    1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide an accurate guess of the exact task that the person is doing)
     2. **Best Suited Activity Classification** : Choose one from "Desk-Work" (any work related), "Commuting" (walking), "Eating" (having lunch, coffee break), In-Meeting (having conversation, physical meeting, presentations)
     2. **Criticality**: Determine the criticality level based on the following definitions:
         - **Low**: Minimal focus required, such as routine tasks (e.g., washing hands, drinking water).
@@ -83,6 +84,27 @@ ACS_EXAMPLES = [
     {
         "description": "The individual is in a video conference, wearing headphones, and taking notes on a notepad.",
         "activity": "participating in a video conference",
+        "activity_class": "Desk-Work",
+        "criticality": "High",
+        "surrounding": "workspace with headphones, a laptop, and a notepad",
+    },
+    {
+        "description": "The individual is developing a software application on a computer, typing code and testing the application.",
+        "activity": "software development",
+        "activity_class": "Desk-Work",
+        "criticality": "High",
+        "surrounding": "workspace with headphones, a laptop, and a notepad",
+    },
+    {
+        "description": "The individual is doing some data entry work on a computer, typing into a spreadsheet.",
+        "activity": "Data Entry",
+        "activity_class": "Desk-Work",
+        "criticality": "High",
+        "surrounding": "workspace with headphones, a laptop, and a notepad",
+    },
+    {
+        "description": "The individual is doing multiple tasks, listening to music on headphones, doing some data entry work on a computer, typing into a spreadsheet, and eating.",
+        "activity": "Multitasking",
         "activity_class": "Desk-Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",

@@ -19,6 +19,14 @@ def intervention_gen(client,stress_level, live_timetable, surrounding):
         Intervention Generated(str)
 
     """
+    print('Stress Level',stress_level)
+    print('Live Timetable',live_timetable) 
+    print('Surrounding',surrounding) 
+
+    if isinstance(live_timetable, str):
+        sanitized_timetable = live_timetable.replace("\n", " | ")
+    else:
+        sanitized_timetable = str(live_timetable)
 
     # if isinstance(live_timetable, str):
     #     sanitized_timetable = live_timetable.replace("\n", " | ")

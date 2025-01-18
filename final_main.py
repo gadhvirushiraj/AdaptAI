@@ -8,8 +8,15 @@ from acs_detection import get_img_desp, get_acs
 from get_biostats import short_instance_stats, long_instance_stats
 from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
+import sounddevice as sd
+from scipy.io.wavfile import write, read
+import numpy as np
+import os
 import cv2
-import json
+
+# Query device info for the selected device
+device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
+sd.default.device = device_index
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
@@ -200,7 +207,7 @@ def vision_pipeline(client, db_path):
     frame_number = 0
     live_timetable = None
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     if not cap.isOpened():
         print("Error: Unable to open video capture device.")
         return
@@ -210,11 +217,13 @@ def vision_pipeline(client, db_path):
     while True:
         ret, frame = cap.read()
         _, buffer = cv2.imencode('.jpg', frame)
+
         last_capture_time = time.time()
         if not ret:
             print("Error: Unable to capture image.")
             break
         img_desp = get_img_desp(client, buffer, pre_frame_act)
+        
         vision_output = get_acs(client, img_desp)
 
         activity_class_data.append(vision_output["activity_class"])
@@ -256,10 +265,12 @@ def vision_pipeline(client, db_path):
         )
 
         time_diff = time.time() - last_capture_time
+        # For individual frames
         if time_diff < 20:
             time.sleep(20 - time_diff) 
 
-        if len(activity_class_data) == 2:
+        # For collective frame processing
+        if len(activity_class_data) == 30:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
@@ -295,23 +306,106 @@ def vision_pipeline(client, db_path):
             last_timetable_push_time = time.time()
             activity_class_data = []
 
+class AudioRecorder:
+    def __init__(self, samplerate=48000, channels=2, device_index=11):
+        self.samplerate = samplerate
+        self.channels = channels
+        self.device_index = device_index
+        self.buffer = np.array([], dtype=np.int16)
+        self.lock = threading.Lock()
+        self.is_recording = False
 
-def audio_pipeline(client, db_path):
-    """Thread function to handle audio transcription and task extraction."""
+    def start_recording(self):
+        self.is_recording = True
+        threading.Thread(target=self._record_continuously).start()
+
+    def stop_recording(self):
+        self.is_recording = False
+
+    def _record_continuously(self):
+        with sd.InputStream(
+            samplerate=self.samplerate,
+            channels=self.channels,
+            dtype=np.int16,
+            callback=self._audio_callback,
+        ):
+            while self.is_recording:
+                time.sleep(0.1)
+
+    def _audio_callback(self, indata, frames, time, status):
+        if status:
+            print(f"Stream status: {status}")
+        with self.lock:
+            self.buffer = np.append(self.buffer, indata)
+
+    def get_audio_snapshot(self, use_full_buffer=False, duration=None):
+        """
+        Get audio data from the buffer.
+
+        Args:
+            use_full_buffer (bool): If True, return the entire buffer.
+            duration (int): Number of seconds to retrieve (ignored if use_full_buffer is True).
+
+        Returns:
+            np.ndarray: Audio data.
+        """
+        with self.lock:
+            if use_full_buffer:
+                return self.buffer
+            elif duration:
+                num_samples = int(duration * self.samplerate * self.channels)
+                return self.buffer[-num_samples:] if len(self.buffer) >= num_samples else self.buffer
+            else:
+                return np.array([], dtype=np.int16)
+
+
+
+
+def audio_pipeline(client, db_path, recorder, duration=60):
+    """
+    Function to process accumulated audio every 15 seconds.
+
+    Args:
+        client: The client object for transcription and task extraction.
+        db_path: Path to the SQLite database.
+        recorder: An instance of `AudioRecorder`.
+        duration: Duration in seconds for processing intervals.
+    """
+    audio_file = "accumulated_audio.wav"
+
     while True:
-        last_capture_time = time.time()
-        current_time = time.strftime("%Y%m%d_%H%M%S")
-        audio_file = r"C:\Users\shreyas.ramachandran\Downloads\audio_sample.mp4"
-        
+        # Wait for the next 15-second interval
+        time.sleep(duration)
+
+        # Extract the last `duration` seconds of audio and save to a file
+        audio_data = recorder.get_audio_snapshot(duration)
+        if len(audio_data) == 0:
+            print("No audio data available for processing.")
+            continue
+
+        write(audio_file, recorder.samplerate, audio_data)
+        print(f"Saved last {duration} seconds of audio to {audio_file}.")
+
+        # Process the audio file
         transcription = audio_transcription(client, audio_file)
+        if not transcription:
+            print("No transcription generated. Skipping.")
+            continue
+
         extracted_tasks = extract_task(client, transcription)
-        
+        if extracted_tasks:
+            for task in extracted_tasks:
+                push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
+            print(f"Extracted tasks: {extracted_tasks}")
+        else:
+            print("No tasks extracted.")
+
+        # Store extracted tasks in the database
         for task in extracted_tasks:
             push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
 
-        time_diff = time.time() - last_capture_time
-        if time_diff < 20:
-            time.sleep(20 - time_diff)
+        print(f"Extracted tasks: {extracted_tasks}")
+
 
 
 def main():
@@ -319,14 +413,27 @@ def main():
     db_path = "task.db"
     client = get_client()
 
+    # Initialize the audio recorder
+    recorder = AudioRecorder()
+    # Start continuous audio recording
+    recorder.start_recording()
+
     vision_thread = threading.Thread(target=vision_pipeline, args=(client, db_path))
-    audio_thread = threading.Thread(target=audio_pipeline, args=(client, db_path))
+    audio_thread = threading.Thread(target=audio_pipeline, args=(client, db_path, recorder))
 
-    vision_thread.start()
-    audio_thread.start()
+    try:
+        vision_thread.start()
+        audio_thread.start()
 
-    vision_thread.join()
-    audio_thread.join()
+        # Wait for both threads to finish
+        vision_thread.join()
+        audio_thread.join()
+    except KeyboardInterrupt:
+        print("Stopping processes...")
+        recorder.stop_recording()
+        vision_thread.join()
+        audio_thread.join()
+        print("All processes stopped gracefully.")
 
 
 if __name__ == "__main__":
