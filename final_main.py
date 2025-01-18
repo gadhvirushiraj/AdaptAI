@@ -10,8 +10,13 @@ from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
 import sounddevice as sd
 from scipy.io.wavfile import write, read
-import numpy as npgit 
+import numpy as np
+import os
 import cv2
+
+# Query device info for the selected device
+device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
+sd.default.device = device_index
 
 # Query device info for the selected device
 device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
@@ -29,7 +34,7 @@ def get_client():
         groq client
     """
     os.environ["GROQ_API_KEY"] = (
-        "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"
+        "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"
     )
     client = Groq(
         api_key=os.environ.get("GROQ_API_KEY"),
@@ -213,9 +218,17 @@ def vision_pipeline(client, db_path):
     pre_frame_act = ""
     activity_class_data = []
     last_timetable_push_time = time.time()
+    frame_number = 0
+    frames_dir = "frames"
+    os.makedirs(frames_dir, exist_ok=True)
+
     while True:
         ret, frame = cap.read()
         _, buffer = cv2.imencode('.jpg', frame)
+        
+        frame_number += 1
+        frame_path = os.path.join(frames_dir, f"frame_{frame_number:04d}.jpg")
+        cv2.imwrite(frame_path, frame)
 
         last_capture_time = time.time()
         if not ret:
@@ -269,7 +282,7 @@ def vision_pipeline(client, db_path):
             time.sleep(20 - time_diff) 
 
         # For collective frame processing
-        if len(activity_class_data) == 30:
+        if len(activity_class_data) == 3:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )

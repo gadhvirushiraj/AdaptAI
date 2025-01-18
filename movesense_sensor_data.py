@@ -7,7 +7,7 @@ This example is based on the examples in the Bleak repo: https://github.com/hbld
 
 import logging
 import asyncio
-import threading
+import platform
 import signal
 from bleak import BleakClient
 from bleak import _logger as logger

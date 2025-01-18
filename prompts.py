@@ -13,6 +13,7 @@ IMG_DESCRIPTION_PROMPT = PromptTemplate(
        - Describe only what is directly observable from the given perspective. 
        - Include visible actions and details of the surroundings without speculating beyond the provided visual context.
        - If you see that the person is doing something, describe the task in detail. If there are a number of tasks describe them in detail.
+       - If you see that the person is doing something, describe the task in detail. If there are a number of tasks describe them in detail.
 
     2. **Environmental Details**:
        - Note specific aspects such as:
@@ -39,11 +40,11 @@ ACS_TASK = """
     
     1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide an accurate guess of the exact task that the person is doing)
     2. **Best Suited Activity Classification** : Choose one from "Desk_Work" (any work related), "Commuting" (walking), "Eating" (having lunch, coffee break), In_Meeting (having conversation, physical meeting, presentations)
-    2. **Criticality**: Determine the criticality level based on the following definitions:
+    3. **Criticality**: Determine the criticality level based on the following definitions:
         - **Low**: Minimal focus required, such as routine tasks (e.g., washing hands, drinking water).
         - **Mid**: Moderate focus required, such as walking in a variable environment or similar tasks.
         - **High**: High focus required, such as driving, performing demanding tasks, playing sports, or handling life-threatening situations.
-    3. **Surrounding**: Describe the environment or context visible in the image. Include notable objects or elements relevant to understanding the scene.
+    4. **Surrounding**: Describe the environment or context visible in the image. Include notable objects or elements relevant to understanding the scene.
 
     **Output Requirements**:
     - Output a LIST with | as seperator, do not add any other text just the list
@@ -56,7 +57,7 @@ ACS_EXAMPLES = [
     {
         "description": "The person is sitting at a desk with a laptop open, typing on the keyboard. A cup of coffee is nearby, and there are papers scattered around.",
         "activity": "typing on a laptop",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "Mid",
         "surrounding": "office desk with papers and a coffee cup",
     },
@@ -77,35 +78,35 @@ ACS_EXAMPLES = [
     {
         "description": "The person is using a copy machine in office, placing papers into the feeder.",
         "activity": "using a copy machine",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "Low",
         "surrounding": "office corner with a copy machine",
     },
     {
         "description": "The individual is in a video conference, wearing headphones, and taking notes on a notepad.",
         "activity": "participating in a video conference",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",
     },
     {
         "description": "The individual is developing a software application on a computer, typing code and testing the application.",
         "activity": "software development",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",
     },
     {
         "description": "The individual is doing some data entry work on a computer, typing into a spreadsheet.",
         "activity": "Data Entry",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",
     },
     {
         "description": "The individual is doing multiple tasks, listening to music on headphones, doing some data entry work on a computer, typing into a spreadsheet, and eating.",
         "activity": "Multitasking",
-        "activity_class": "Desk-Work",
+        "activity_class": "Desk_Work",
         "criticality": "High",
         "surrounding": "workspace with headphones, a laptop, and a notepad",
     },
