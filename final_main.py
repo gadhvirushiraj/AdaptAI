@@ -10,6 +10,8 @@ from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
 import cv2
 import json
+import cv2
+import json
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
@@ -210,7 +212,13 @@ def vision_pipeline(client, db_path):
     while True:
         ret, frame = cap.read()
         _, buffer = cv2.imencode('.jpg', frame)
+        ret, frame = cap.read()
+        _, buffer = cv2.imencode('.jpg', frame)
         last_capture_time = time.time()
+        if not ret:
+            print("Error: Unable to capture image.")
+            break
+        img_desp = get_img_desp(client, buffer, pre_frame_act)
         if not ret:
             print("Error: Unable to capture image.")
             break
@@ -219,6 +227,7 @@ def vision_pipeline(client, db_path):
 
         activity_class_data.append(vision_output["activity_class"])
 
+        print('Frame number :',frame_number)
         print('Frame number :',frame_number)
         push_to_table(
             """
@@ -260,6 +269,7 @@ def vision_pipeline(client, db_path):
             time.sleep(20 - time_diff) 
 
         if len(activity_class_data) == 2:
+        if len(activity_class_data) == 2:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
@@ -290,7 +300,7 @@ def vision_pipeline(client, db_path):
                 "low"
             )
             live_timetable = get_live_timetable(db_path)
-            print('timetable', live_timetable)
+            # print('timetable', live_timetable)
             intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
@@ -303,8 +313,11 @@ def audio_pipeline(client, db_path):
         current_time = time.strftime("%Y%m%d_%H%M%S")
         audio_file = r"C:\Users\shreyas.ramachandran\Downloads\audio_sample.mp4"
         
+        audio_file = r"C:\Users\shreyas.ramachandran\Downloads\audio_sample.mp4"
+        
         transcription = audio_transcription(client, audio_file)
         extracted_tasks = extract_task(client, transcription)
+        
         
         for task in extracted_tasks:
             push_to_table("INSERT INTO tasks (task) VALUES (?);", (task,), db_path)
