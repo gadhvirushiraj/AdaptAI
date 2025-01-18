@@ -174,28 +174,13 @@ INTERVENTION_EXAMPLES = [
     {
         "stress_level": "stressed",
         "activity_timetable": """
-<<<<<<< HEAD
-        Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
-=======
             Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
             8-9 AM,60,0,0,0,0
             9-10 AM,50,0,0,10,0
             10-11 AM,40,0,0,20,10
             11-12 PM,60,0,0,0,5
             """,
         "surrounding_type": "cubicle",
-<<<<<<< HEAD
-        "output": {
-            """
-            ["Analysis": "You spent the majority of your morning working at your desk and attending meetings. While you included some walking, you haven’t eaten, which could reduce energy and focus. The prolonged desk work also increases stiffness.",
-            "Interventions": [
-                Immediate Action: "Take a 10-minute break to eat a healthy snack or meal and hydrate.",
-                Follow-Up: "Stand up and stretch for 5 minutes before resuming work."]
-            ]
-            """
-        },
-=======
         "output": """
         ["Analysis": "You spent the majority of your morning working at your desk and attending meetings. While you included some walking, you haven’t eaten, which could reduce energy and focus. The prolonged desk work also increases stiffness.",
         "Interventions": [
@@ -203,7 +188,6 @@ INTERVENTION_EXAMPLES = [
             Follow-Up: "Stand up and stretch for 5 minutes before resuming work."]
         ]
         """,
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
     },
     {
         "stress_level": "not stressed",
@@ -215,17 +199,6 @@ INTERVENTION_EXAMPLES = [
             10-11 AM,30,0,0,10,20
         """,
         "surrounding_type": "cafeteria",
-<<<<<<< HEAD
-        "output": {
-            """
-            ["Analysis": "Your schedule shows good balance with walking and commuting, but your eating habits are inconsistent. The lack of a proper meal might leave you feeling fatigued later in the day.",
-            "Interventions": [
-                Immediate Action: "Use your current time in the cafeteria to enjoy a wholesome meal.",
-                Follow-Up: "Consider packing snacks or scheduling regular breaks to eat."]
-            ]
-            """
-        },
-=======
         "output": """
         ["Analysis": "Your schedule shows good balance with walking and commuting, but your eating habits are inconsistent. The lack of a proper meal might leave you feeling fatigued later in the day.",
         "Interventions": [
@@ -233,7 +206,6 @@ INTERVENTION_EXAMPLES = [
             Follow-Up: "Consider packing snacks or scheduling regular breaks to eat."]
         ]
         """,
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
     },
     {
         "stress_level": "stressed",
@@ -245,17 +217,6 @@ INTERVENTION_EXAMPLES = [
             4-5 PM,60,0,0,0,0
         """,
         "surrounding_type": "office",
-<<<<<<< HEAD
-        "output": {
-            """
-            ["Analysis": "Your afternoon was filled with desk work and meetings, with minimal walking and no food intake. This pattern could worsen stress and hinder productivity.",
-            "Interventions": [
-                Immediate Action: "Take a 15-minute break to eat something nutritious and walk around to refresh your mind and body.",
-                Follow-Up: "Schedule short breaks every hour to prevent stiffness and stay energized."]
-            ]
-            """
-        },
-=======
         "output": """
         ["Analysis": "Your afternoon was filled with desk work and meetings, with minimal walking and no food intake. This pattern could worsen stress and hinder productivity.",
         "Interventions": [
@@ -263,7 +224,6 @@ INTERVENTION_EXAMPLES = [
             Follow-Up: "Schedule short breaks every hour to prevent stiffness and stay energized."]
         ]
         """,
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
     },
 ]
 
@@ -328,22 +288,6 @@ PERSONALIZED_LLM_PROMPT = PromptTemplate(
         - Reflect an understanding of how their day has been and respond in a way that makes them feel supported and motivated.
         - The main goal is to provide personalized, tailored output for this person based on their data. The information provided is specific to the individual, and your responses should always reflect that.
         - For example, if the user asks for recommendations—be it for food, a restaurant, or a juice—give suggestions that are best suited for them at that moment, considering their stress levels, energy needs, and overall day’s workload.
-<<<<<<< HEAD
-
-        ### Example Input:
-        ```json
-
-        Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min), pnn50, hr
-        1-2 PM,50,0,0,0,10,20, 62
-        2-3 PM,30,0,0,30,5,10, 70
-        3-4 PM,40,0,0,20,5, 30, 85
-        4-5 PM,60,0,0,0,0, 25, 78
-
-
-        input  = {input}
-    ''',
-)
-=======
 
         ### Example Input:
         ```json
@@ -412,7 +356,6 @@ PERSONALIZED_LLM_PROMPT = PromptTemplate(
     ''',
 )
 
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
 
 TASK_EXTRACTION_PROMPT = """
 You are an expert in task analysis. Your ONLY purpose is to extract actionable tasks from the provided transcribed speech and return them in the specified JSON format.

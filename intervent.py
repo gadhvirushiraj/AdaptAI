@@ -35,11 +35,7 @@ def intervention_gen(client,stress_level, live_timetable, surrounding):
 
     query = INTERVENTION_GEN.format(
         stress_level=stress_level,
-<<<<<<< HEAD
-        activity_timetable=sanitized_timetable,
-=======
         activity_timetable=live_timetable,
->>>>>>> f2e0a6b29c3749b7eded55108d0471deca1d9a9d
         surrounding_type=surrounding,
     )
 
