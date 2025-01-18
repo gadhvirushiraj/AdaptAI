@@ -10,8 +10,7 @@ from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
 import sounddevice as sd
 from scipy.io.wavfile import write, read
-import numpy as np
-import os
+import numpy as npgit 
 import cv2
 
 # Query device info for the selected device
