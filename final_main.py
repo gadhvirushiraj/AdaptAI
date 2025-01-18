@@ -200,7 +200,7 @@ def vision_pipeline(client, db_path):
     frame_number = 0
     live_timetable = None
 
-    cap = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Error: Unable to open video capture device.")
         return
@@ -290,7 +290,7 @@ def vision_pipeline(client, db_path):
                 "low"
             )
             live_timetable = get_live_timetable(db_path)
-            print('timetable', live_timetable)
+            # print('timetable', live_timetable)
             intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []
