@@ -8,6 +8,7 @@ from acs_detection import get_img_desp, get_acs
 from get_biostats import short_instance_stats, long_instance_stats
 from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
+from intervent import intervention_gen
 
 # Lock for thread-safe database access
 db_lock = threading.Lock()
@@ -99,6 +100,9 @@ def fetch_ecg(db_path,instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 9000
+                AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
+                SELECT * FROM ecg_data 
                 WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 60000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
                 """
@@ -113,9 +117,9 @@ def fetch_ecg(db_path,instance):
             with sqlite3.connect(db_path) as connection:
                 cursor = connection.cursor()
                 query = """
-                SELECT * FROM data_ecg 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM data_ecg) - 3600000
-                AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM data_ecg);
+                SELECT * FROM ecg_data 
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 45000
+                AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
                 return cursor.fetchall()
@@ -196,17 +200,19 @@ def vision_pipeline(client, db_path):
     activity_class_data = []
     last_timetable_push_time = time.time()
     frame_number = 0
-    live_timetable = ""
+    live_timetable = None
 
     while True:
         frame = rf"C:\Users\shreyas.ramachandran\Downloads\projects\workplace-productivity-and-well-being\data\pov\frames\frame_{frame_number:04d}.jpg"
         frame_number += 1
         last_capture_time = time.time()
 
+        print('frame_number', frame_number)
+
         img_desp = get_img_desp(client, frame, pre_frame_act)
         vision_output = get_acs(client, img_desp)
 
-        activity_class_data.append(vision_output["activity"])
+        activity_class_data.append(vision_output["activity_class"])
 
         print('Frame number :',frame_number)
         push_to_table(
@@ -225,7 +231,8 @@ def vision_pipeline(client, db_path):
             db_path,
         )
 
-        ecg_data = fetch_ecg(db_path,'short')
+        ecg_data = fetch_ecg('sensor_data.db','short')
+        # print('ecg_data', ecg_data)
         json_hrv = short_instance_stats(ecg_data)
 
         push_to_table(
@@ -234,24 +241,25 @@ def vision_pipeline(client, db_path):
             VALUES (?, ?, ?, ?, ?);
             """,
             (
-                json_hrv["mean_rr"],
-                json_hrv["pnn50"],
-                json_hrv["pnn30"],
-                json_hrv["pnn20"],
-                json_hrv["hr"],
+                json_hrv['metrics']["mean_rr"],
+                json_hrv['metrics']["pnn50"],
+                json_hrv['metrics']["pnn30"],
+                json_hrv['metrics']["pnn20"],
+                json_hrv['metrics']["hr"],
             ),
             db_path,
         )
 
         time_diff = time.time() - last_capture_time
         if time_diff < 20:
-            time.sleep(20 - time_diff)
+            time.sleep(20 - time_diff) 
 
-        if len(activity_class_data) == 5:
+        if len(activity_class_data) == 3:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
-            long_hrv = long_instance_stats(ecg_data,'short')
+            ecg_data = fetch_ecg('sensor_data.db','long')
+            long_hrv = long_instance_stats(ecg_data)
             end_time = time.strftime("%H:%M", time.localtime(time.time()))
             time_interval = f"{start_time} - {end_time}"
             push_to_table(
@@ -265,18 +273,19 @@ def vision_pipeline(client, db_path):
                     Counter(activity_class_data).get("Commuting", 0),
                     Counter(activity_class_data).get("Eating", 0),
                     Counter(activity_class_data).get("In_Meeting", 0),
-                    long_hrv["pnn50"],
-                    long_hrv["hr"],
+                    long_hrv['metrics']["pnn50"],
+                    long_hrv['metrics']["hr"],
                 ),
                 db_path,
             )
-            pnn50 = long_hrv["pnn50"]
+            pnn50 = long_hrv['metrics']["pnn50"]
             stress_level = (
                 "high" if pnn50 < 20 else
                 "moderate" if 20 <= pnn50 < 50 else
                 "low"
             )
             live_timetable = get_live_timetable(db_path)
+            print('timetable', live_timetable)
             intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
             last_timetable_push_time = time.time()
             activity_class_data = []

@@ -3,7 +3,7 @@ import pytz
 import numpy as np
 from scipy.signal import find_peaks
 
-def short_instance_stats(ecg_input, tsec=60):
+def short_instance_stats(ecg_input, tsec=9):
     """
     Compute HRV metrics from the last tsec seconds (default 1 minute) of ECG data.
 
@@ -31,8 +31,12 @@ def short_instance_stats(ecg_input, tsec=60):
     ecg_signal = np.array([row[3] for row in ecg_input])
     timestamps_sensor = np.array([int(row[2]) for row in ecg_input])  # Use timestamp_sensor
 
+    print('time_sensor',timestamps_sensor)
+
     # Detect R-peaks
     peaks, _ = find_peaks(ecg_signal, height=0.4)  # Adjust 'height' as needed
+
+    print('peaks', peaks)
 
     # Calculate RR intervals (differences between consecutive peaks in time)
     rr_intervals = np.diff(timestamps_sensor[peaks])  # RR intervals in milliseconds
@@ -75,7 +79,7 @@ def long_instance_stats(ecg_input):
     # Current IST time
     ist = pytz.timezone('Asia/Kolkata')
     end_interval = datetime.now(ist)
-    start_interval = end_interval - timedelta(hours=1)
+    start_interval = end_interval - timedelta(seconds=45)
 
     # Ensure the buffer has enough data
     # required_data_points = 60 * 60 * 125  # 1 hour of data at 125 Hz sampling rate
