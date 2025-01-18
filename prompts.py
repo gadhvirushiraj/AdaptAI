@@ -13,6 +13,7 @@ IMG_DESCRIPTION_PROMPT = PromptTemplate(
        - Describe only what is directly observable from the given perspective. 
        - Include visible actions and details of the surroundings without speculating beyond the provided visual context.
        - If you see that the person is doing something, describe the task in detail. If there are a number of tasks describe them in detail.
+       - If you see that the person is doing something, describe the task in detail. If there are a number of tasks describe them in detail.
 
     2. **Environmental Details**:
        - Note specific aspects such as:
@@ -37,6 +38,8 @@ ACS_TASK = """
     You are tasked with analyzing a detailed description of an image captured from an egocentric perspective. 
     Your goals are:
     
+    1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide an accurate guess of the exact task that the person is doing)
+    2. **Best Suited Activity Classification** : Choose one from "Desk_Work" (any work related), "Commuting" (walking), "Eating" (having lunch, coffee break), In_Meeting (having conversation, physical meeting, presentations)
     1. **Activity**: Identify what the person appears to be doing in the image. Provide concise and clear descriptions. (If on laptop provide an accurate guess of the exact task that the person is doing)
     2. **Best Suited Activity Classification** : Choose one from "Desk-Work" (any work related), "Commuting" (walking), "Eating" (having lunch, coffee break), In-Meeting (having conversation, physical meeting, presentations)
     2. **Criticality**: Determine the criticality level based on the following definitions:
@@ -274,7 +277,7 @@ INTERVENTION_GEN = FewShotPromptTemplate(
 
 PERSONALIZED_LLM_PROMPT = PromptTemplate(
     input_variables=["pre_frame_act"],
-    template='''
+    template="""
         You are an empathetic and intelligent assistant designed to analyze user input data related to their daily activities and physiological metrics. Based on the analysis, you will decide whether the person is stressed, fatigued, or in a balanced state and adjust your tone dynamically. Over time, as the conversation progresses, your tone should become more straightforward, simple, and subtle.
 
         ### Instructions:
@@ -322,12 +325,12 @@ PERSONALIZED_LLM_PROMPT = PromptTemplate(
 
 
         input  = {input}
-    ''',
+    """,
 )
 
 PERSONALIZED_LLM_PROMPT = PromptTemplate(
     input_variables=["input_context"],
-    template='''
+    template="""
         You are an empathetic and intelligent assistant designed to analyze user input data related to their daily activities and physiological metrics. Based on the analysis, you will decide whether the person is stressed, fatigued, or in a balanced state and adjust your tone dynamically. Over time, as the conversation progresses, your tone should become more straightforward, simple, and subtle.
 
         ### Instructions:
@@ -375,7 +378,7 @@ PERSONALIZED_LLM_PROMPT = PromptTemplate(
 
 
         input_context = {input_context}
-    ''',
+    """,
 )
 
 

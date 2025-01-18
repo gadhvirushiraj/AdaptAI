@@ -12,7 +12,10 @@ import sounddevice as sd
 from scipy.io.wavfile import write, read
 import numpy as np
 import os
-import cv2
+
+# Query device info for the selected device
+device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
+sd.default.device = device_index
 
 # Query device info for the selected device
 device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
