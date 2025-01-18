@@ -5,7 +5,7 @@ Intervention Pipeline to judge and create health-interventions
 from prompts import INTERVENTION_GEN
 
 
-def intervention_gen(client, stress_status, time_table, surrounding):
+def intervention_gen(client,time_table, surrounding, stress_status):
     """
     LLM call to actually judges if we actually require intevention.
 
@@ -21,9 +21,9 @@ def intervention_gen(client, stress_status, time_table, surrounding):
     """
 
     query = INTERVENTION_GEN.format(
-        stress_status=stress_status,
+        stress_level=stress_status,
         activity_timetable=time_table,
-        surrounding=surrounding,
+        surrounding_type=surrounding,
     )
     output = client.chat.completions.create(
         messages=[
