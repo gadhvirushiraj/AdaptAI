@@ -14,6 +14,7 @@ import numpy as np
 import os
 import cv2
 import mss
+import csv
 
 # Query device info for the selected device
 device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
@@ -37,6 +38,63 @@ def get_client():
         api_key=os.environ.get("GROQ_API_KEY"),
     )
     return client
+
+
+def input_csv(db_path):
+    """
+    Reads data from the 'input.csv' file and inserts it into the 'timetable' table in the database.
+    """
+    csv_path = "input.csv"
+    try:
+        # Open the CSV file
+        with open(csv_path, mode="r", encoding="utf-8") as file:
+            reader = csv.DictReader(file)
+
+            # Validate expected columns in the CSV file
+            required_columns = [
+                "time_interval",
+                "Desk_Work",
+                "Commuting",
+                "Eating",
+                "In_Meeting",
+            ]
+
+            for column in required_columns:
+                if column not in reader.fieldnames:
+                    raise ValueError(f"Missing required column: {column}")
+
+            # Prepare the SQL query for insertion
+            query = """
+            INSERT INTO timetable (
+                time_interval, Desk_Work, Commuting, Eating, In_Meeting, pNN50, heart_rate
+            ) VALUES (?, ?, ?, ?, ?, ?, ?);
+            """
+
+            # Iterate through rows in the CSV file and insert them into the database
+            for row in reader:
+                params = (
+                    row["time_interval"],
+                    row["Desk_Work"],
+                    row["Commuting"],
+                    row["Eating"],
+                    row["In_Meeting"],
+                    "No data",
+                    "No data",
+                )
+
+                # Push data to the database using the utility function
+                push_to_table(query, params, db_path)
+
+        print(
+            "Data from the CSV file has been successfully inserted into the 'timetable' table."
+        )
+
+    except FileNotFoundError:
+        print(f"Error: The file '{csv_path}' was not found.")
+    except ValueError as ve:
+        print(f"Error: {ve}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 def create_table(db_path):
@@ -101,9 +159,9 @@ def create_table(db_path):
         print(f"An error occurred: {e}")
 
 
-def fetch_ecg(db_path,instance):
+def fetch_ecg(db_path, instance):
     """Fetch ECG data from the database."""
-    if instance == 'short':
+    if instance == "short":
         try:
             with sqlite3.connect(db_path) as connection:
                 cursor = connection.cursor()
@@ -117,8 +175,8 @@ def fetch_ecg(db_path,instance):
         except Exception as e:
             print(f"An error occurred: {e}")
             return []
-    
-    elif instance == 'long':
+
+    elif instance == "long":
         try:
             with sqlite3.connect(db_path) as connection:
                 cursor = connection.cursor()
@@ -171,9 +229,13 @@ def get_live_timetable(db_path):
     return header + "\n".join(rows)
 
 
-def intervent_pipeline(client, live_timetable, surrounding, stress_level,screen_capture_data):
+def intervent_pipeline(
+    client, live_timetable, surrounding, stress_level, screen_capture_data
+):
     if live_timetable is not None:
-        intervent = intervention_gen(client, stress_level, live_timetable, surrounding,screen_capture_data)
+        intervent = intervention_gen(
+            client, stress_level, live_timetable, surrounding, screen_capture_data
+        )
 
         # Display the intervent message
         print(f"\nGenerated Intervention:\n{intervent}")
@@ -234,17 +296,19 @@ def vision_pipeline(client, db_path):
         screenshot = screen_capture.grab(monitor)
         frame_screen = np.array(screenshot)
         frame_screen_number += 1
-        frame_screen_path = os.path.join(frames_screen_dir, f"frame_{frame_screen_number:04d}.jpg")
+        frame_screen_path = os.path.join(
+            frames_screen_dir, f"frame_{frame_screen_number:04d}.jpg"
+        )
         cv2.imwrite(frame_screen_path, frame_screen)
 
-         # Process the frame (same as webcam-based pipeline)
-        _, buffer = cv2.imencode('.jpg', frame_screen)
+        # Process the frame (same as webcam-based pipeline)
+        _, buffer = cv2.imencode(".jpg", frame_screen)
         screen_img_desp = get_img_desp(client, buffer, pre_frame_act, is_screen=True)
         screen_capture_data.append(screen_img_desp)
 
         ret, frame = cap.read()
-        _, buffer = cv2.imencode('.jpg', frame)
-        
+        _, buffer = cv2.imencode(".jpg", frame)
+
         frame_number += 1
         frame_path = os.path.join(frames_dir, f"frame_{frame_number:04d}.jpg")
         cv2.imwrite(frame_path, frame)
@@ -254,12 +318,12 @@ def vision_pipeline(client, db_path):
             print("Error: Unable to capture image.")
             break
         img_desp = get_img_desp(client, buffer, pre_frame_act)
-        
+
         vision_output = get_acs(client, img_desp)
 
         activity_class_data.append(vision_output["activity_class"])
 
-        print('Frame number :',frame_number)
+        print("Frame number :", frame_number)
         push_to_table(
             """
             INSERT INTO vision (timestamp, image_desp, activity, activity_class, criticality, surrounding)
@@ -276,7 +340,7 @@ def vision_pipeline(client, db_path):
             db_path,
         )
 
-        ecg_data = fetch_ecg('sensor_data.db','short')
+        ecg_data = fetch_ecg("sensor_data.db", "short")
         # print('ecg_data', ecg_data)
         json_hrv = short_instance_stats(ecg_data)
 
@@ -286,11 +350,11 @@ def vision_pipeline(client, db_path):
             VALUES (?, ?, ?, ?, ?);
             """,
             (
-                json_hrv['metrics']["mean_rr"],
-                json_hrv['metrics']["pnn50"],
-                json_hrv['metrics']["pnn30"],
-                json_hrv['metrics']["pnn20"],
-                json_hrv['metrics']["hr"],
+                json_hrv["metrics"]["mean_rr"],
+                json_hrv["metrics"]["pnn50"],
+                json_hrv["metrics"]["pnn30"],
+                json_hrv["metrics"]["pnn20"],
+                json_hrv["metrics"]["hr"],
             ),
             db_path,
         )
@@ -298,14 +362,14 @@ def vision_pipeline(client, db_path):
         time_diff = time.time() - last_capture_time
         # For individual frames
         if time_diff < 2:
-            time.sleep(2 - time_diff) 
+            time.sleep(2 - time_diff)
 
         # For collective frame processing
         if len(activity_class_data) == 3:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
-            ecg_data = fetch_ecg('sensor_data.db','long')
+            ecg_data = fetch_ecg("sensor_data.db", "long")
             long_hrv = long_instance_stats(ecg_data)
             end_time = time.strftime("%H:%M", time.localtime(time.time()))
             time_interval = f"{start_time} - {end_time}"
@@ -320,22 +384,27 @@ def vision_pipeline(client, db_path):
                     Counter(activity_class_data).get("Commuting", 0),
                     Counter(activity_class_data).get("Eating", 0),
                     Counter(activity_class_data).get("In_Meeting", 0),
-                    long_hrv['metrics']["pnn50"],
-                    long_hrv['metrics']["hr"],
+                    long_hrv["metrics"]["pnn50"],
+                    long_hrv["metrics"]["hr"],
                 ),
                 db_path,
             )
-            pnn50 = long_hrv['metrics']["pnn50"]
+            pnn50 = long_hrv["metrics"]["pnn50"]
             stress_level = (
-                "high" if pnn50 < 20 else
-                "moderate" if 20 <= pnn50 < 50 else
-                "low"
+                "high" if pnn50 < 20 else "moderate" if 20 <= pnn50 < 50 else "low"
             )
             live_timetable = get_live_timetable(db_path)
             # print('timetable', live_timetable)
-            intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level,screen_capture_data)
+            intervent_pipeline(
+                client,
+                live_timetable,
+                vision_output["surrounding"],
+                stress_level,
+                screen_capture_data,
+            )
             last_timetable_push_time = time.time()
             activity_class_data = []
+
 
 class AudioRecorder:
     def __init__(self, samplerate=48000, channels=2, device_index=11):
@@ -385,11 +454,13 @@ class AudioRecorder:
                 return self.buffer
             elif duration:
                 num_samples = int(duration * self.samplerate * self.channels)
-                return self.buffer[-num_samples:] if len(self.buffer) >= num_samples else self.buffer
+                return (
+                    self.buffer[-num_samples:]
+                    if len(self.buffer) >= num_samples
+                    else self.buffer
+                )
             else:
                 return np.array([], dtype=np.int16)
-
-
 
 
 def audio_pipeline(client, db_path, recorder, duration=60):
@@ -438,7 +509,6 @@ def audio_pipeline(client, db_path, recorder, duration=60):
         print(f"Extracted tasks: {extracted_tasks}")
 
 
-
 def main():
     """Main function to orchestrate multithreading."""
     db_path = "task.db"
@@ -450,20 +520,22 @@ def main():
     recorder.start_recording()
 
     vision_thread = threading.Thread(target=vision_pipeline, args=(client, db_path))
-    audio_thread = threading.Thread(target=audio_pipeline, args=(client, db_path, recorder))
+    audio_thread = threading.Thread(
+        target=audio_pipeline, args=(client, db_path, recorder)
+    )
 
     try:
         vision_thread.start()
-        #audio_thread.start()
+        # audio_thread.start()
 
         # Wait for both threads to finish
         vision_thread.join()
-        #audio_thread.join()
+        # audio_thread.join()
     except KeyboardInterrupt:
         print("Stopping processes...")
         recorder.stop_recording()
         vision_thread.join()
-        #audio_thread.join()
+        # audio_thread.join()
         print("All processes stopped gracefully.")
 
 
