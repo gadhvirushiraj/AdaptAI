@@ -454,16 +454,16 @@ def main():
 
     try:
         vision_thread.start()
-        #audio_thread.start()
+        # audio_thread.start()
 
         # Wait for both threads to finish
         vision_thread.join()
-        #audio_thread.join()
+        # audio_thread.join()
     except KeyboardInterrupt:
         print("Stopping processes...")
         recorder.stop_recording()
         vision_thread.join()
-        #audio_thread.join()
+        # audio_thread.join()
         print("All processes stopped gracefully.")
 
 
