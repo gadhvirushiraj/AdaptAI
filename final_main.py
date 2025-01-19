@@ -13,10 +13,7 @@ from scipy.io.wavfile import write, read
 import numpy as np
 import os
 import cv2
-
-# Query device info for the selected device
-device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
-sd.default.device = device_index
+import mss
 
 # Query device info for the selected device
 device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
@@ -174,9 +171,9 @@ def get_live_timetable(db_path):
     return header + "\n".join(rows)
 
 
-def intervent_pipeline(client, live_timetable, surrounding, stress_level):
+def intervent_pipeline(client, live_timetable, surrounding, stress_level,screen_capture_data):
     if live_timetable is not None:
-        intervent = intervention_gen(client, stress_level, live_timetable, surrounding)
+        intervent = intervention_gen(client, stress_level, live_timetable, surrounding,screen_capture_data)
 
         # Display the intervent message
         print(f"\nGenerated Intervention:\n{intervent}")
@@ -222,7 +219,29 @@ def vision_pipeline(client, db_path):
     frames_dir = "frames"
     os.makedirs(frames_dir, exist_ok=True)
 
+    # Capture the screen
+    frame_screen_number = 0
+    screen_capture_data = []
+    frames_screen_dir = "frames_screen"
+    os.makedirs(frames_dir, exist_ok=True)
+
+    # Screen recording setup
+    screen_capture = mss.mss()
+    monitor = screen_capture.monitors[0]  # Capture the entire screen
+
     while True:
+        # Capture a screenshot
+        screenshot = screen_capture.grab(monitor)
+        frame_screen = np.array(screenshot)
+        frame_screen_number += 1
+        frame_screen_path = os.path.join(frames_screen_dir, f"frame_{frame_screen_number:04d}.jpg")
+        cv2.imwrite(frame_screen_path, frame_screen)
+
+         # Process the frame (same as webcam-based pipeline)
+        _, buffer = cv2.imencode('.jpg', frame_screen)
+        screen_img_desp = get_img_desp(client, buffer, pre_frame_act, is_screen=True)
+        screen_capture_data.append(screen_img_desp)
+
         ret, frame = cap.read()
         _, buffer = cv2.imencode('.jpg', frame)
         
@@ -278,8 +297,8 @@ def vision_pipeline(client, db_path):
 
         time_diff = time.time() - last_capture_time
         # For individual frames
-        if time_diff < 20:
-            time.sleep(20 - time_diff) 
+        if time_diff < 2:
+            time.sleep(2 - time_diff) 
 
         # For collective frame processing
         if len(activity_class_data) == 3:
@@ -314,7 +333,7 @@ def vision_pipeline(client, db_path):
             )
             live_timetable = get_live_timetable(db_path)
             # print('timetable', live_timetable)
-            intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level)
+            intervent_pipeline(client, live_timetable, vision_output["surrounding"], stress_level,screen_capture_data)
             last_timetable_push_time = time.time()
             activity_class_data = []
 
@@ -435,16 +454,16 @@ def main():
 
     try:
         vision_thread.start()
-        audio_thread.start()
+        #audio_thread.start()
 
         # Wait for both threads to finish
         vision_thread.join()
-        audio_thread.join()
+        #audio_thread.join()
     except KeyboardInterrupt:
         print("Stopping processes...")
         recorder.stop_recording()
         vision_thread.join()
-        audio_thread.join()
+        #audio_thread.join()
         print("All processes stopped gracefully.")
 
 

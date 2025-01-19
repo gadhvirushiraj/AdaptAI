@@ -4,10 +4,10 @@ Pipeline to detect Action, Criticality, and Surrounding (ACS). Making Live-Timet
 
 from datetime import datetime
 import base64
-from prompts import IMG_DESCRIPTION_PROMPT, ACS_PROMPT
+from prompts import IMG_DESCRIPTION_PROMPT, ACS_PROMPT, SCREEN_CAPTURE_PROMPT
 
 
-def get_img_desp(client, img, pre_frame_act):
+def get_img_desp(client, img, pre_frame_act, is_screen=False):
     """
     VLM (Vision-Language Model) calls to describe the POV (point-of-view) view in detail.
 
@@ -25,8 +25,12 @@ def get_img_desp(client, img, pre_frame_act):
         img = base64.b64encode(img).decode("utf-8")
     except Exception as e:
         raise ValueError("Error: couldn't encode the image correctly") from e
-
-    query = IMG_DESCRIPTION_PROMPT.format(pre_frame_act=pre_frame_act)
+    
+    if is_screen:
+        query = SCREEN_CAPTURE_PROMPT
+    else:
+        query = IMG_DESCRIPTION_PROMPT.format(pre_frame_act=pre_frame_act)
+    
     output = client.chat.completions.create(
         model="llama-3.2-11b-vision-preview",
         messages=[
@@ -50,6 +54,8 @@ def get_img_desp(client, img, pre_frame_act):
         stop=None,
     )
 
+    if is_screen:
+        print('Screen Description',output.choices[0].message.content)
     return output.choices[0].message.content
 
 

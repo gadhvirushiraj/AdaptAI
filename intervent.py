@@ -5,7 +5,7 @@ Intervention Pipeline to judge and create health-interventions
 from prompts import INTERVENTION_GEN
 
 
-def intervention_gen(client,stress_level, live_timetable, surrounding):
+def intervention_gen(client,stress_level, live_timetable, surrounding,screen_capture_data):
     """
     LLM call to actually judges if we actually require intevention.
 
@@ -14,6 +14,7 @@ def intervention_gen(client,stress_level, live_timetable, surrounding):
         stress_status(str): current stress status.
         time-table(str) : An hourly based concise report of activities performed.
         surrounding(str): A description of the environment or surroundings.
+        screen_capture_data (list): A list of screen capture descriptions taken during the session.
 
     Returns:
         Intervention Generated(str)
@@ -33,10 +34,12 @@ def intervention_gen(client,stress_level, live_timetable, surrounding):
     # else:
     #     sanitized_timetable = str(live_timetable)
 
+
     query = INTERVENTION_GEN.format(
         stress_level=stress_level,
         activity_timetable=live_timetable,
         surrounding_type=surrounding,
+        screen_capture_data = "\n".join(screen_capture_data)
     )
 
     output = client.chat.completions.create(
