@@ -16,6 +16,7 @@ import os
 import cv2
 import mss
 import csv
+import re
 
 # Query device info for the selected device
 device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
@@ -231,15 +232,23 @@ def get_live_timetable(db_path):
 
 def show_intervention_popup(intervention):
     """
-    Display a desktop notification using win10toast.
+    Extract the Immediate Action from the intervention text and display it as a desktop notification.
     """
+    # Extract Immediate Action using regex
+    immediate_action_match = re.search(r'Immediate Action:\s*"(.*?)"', intervention, re.DOTALL)
+
+    if immediate_action_match:
+        immediate_action = immediate_action_match.group(1).strip()
+    else:
+        immediate_action = "No Immediate Action found in the intervention."
+
+    # Display the Immediate Action as a notification
     toaster = ToastNotifier()
     toaster.show_toast(
         "Intervention Prompt",
-        intervention,
+        immediate_action,
         duration=10  # Notification duration in seconds
     )
-
 
 def intervent_pipeline(client, live_timetable, surrounding, stress_level, screen_capture_data):
     if live_timetable is not None:
@@ -361,7 +370,7 @@ def vision_pipeline(client, db_path):
             time.sleep(10 - time_diff)
 
         # For collective frame processing
-        if len(activity_class_data) == 12:
+        if len(activity_class_data) == 18:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )

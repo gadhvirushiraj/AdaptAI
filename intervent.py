@@ -46,7 +46,7 @@ def intervention_gen(client,stress_level, live_timetable, surrounding,screen_cap
         messages=[
             {"role": "user", "content": query},
         ],
-        model="llama3-8b-8192",
+        model="llama-3.3-70b-versatile",
         temperature=1,
         max_tokens=1024,
         top_p=1,
