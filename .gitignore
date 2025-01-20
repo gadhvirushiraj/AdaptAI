@@ -8,3 +8,4 @@ data/*
 __pycache__
 
 accumulated_audio.wav
+test_gpt.py

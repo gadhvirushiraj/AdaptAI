@@ -169,7 +169,7 @@ def fetch_ecg(db_path, instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 10000
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 60000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
@@ -234,33 +234,26 @@ def show_intervention_popup(intervention):
     """
     Extract the Immediate Action from the intervention text and display it as a desktop notification.
     """
-    # Extract Immediate Action using regex
-    immediate_action_match = re.search(r'Immediate Action:\s*"(.*?)"', intervention, re.DOTALL)
-
-    if immediate_action_match:
-        immediate_action = immediate_action_match.group(1).strip()
-    else:
-        immediate_action = "No Immediate Action found in the intervention."
 
     # Display the Immediate Action as a notification
     toaster = ToastNotifier()
     toaster.show_toast(
         "Intervention Prompt",
-        immediate_action,
+        intervention,
         duration=10  # Notification duration in seconds
     )
 
 def intervent_pipeline(client, live_timetable, surrounding, stress_level, screen_capture_data):
     if live_timetable is not None:
-        intervent = intervention_gen(
+        intervent, immediate_action = intervention_gen(
             client, stress_level, live_timetable, surrounding, screen_capture_data
         )
         
         # Trigger desktop notification
-        show_intervention_popup(intervent)
+        show_intervention_popup(immediate_action)
 
         # Log to console for debugging
-        print(f"Generated Intervention: {intervent}")
+        print(f"Generated Intervention: {immediate_action}")
     else:
         print("No intervention generated")
 
@@ -366,11 +359,11 @@ def vision_pipeline(client, db_path):
 
         time_diff = time.time() - last_capture_time
         # For individual frames
-        if time_diff < 10:
-            time.sleep(10 - time_diff)
+        if time_diff < 60:
+            time.sleep(60 - time_diff)
 
         # For collective frame processing
-        if len(activity_class_data) == 18:
+        if len(activity_class_data) == 3:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
