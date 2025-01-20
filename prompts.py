@@ -227,30 +227,29 @@ INTERVENTION_EXAMPLES = [
         "activity_timetable": """
             Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
             8-9 AM,60,0,0,0,0
-            9-10 AM,50,0,0,10,0
-            10-11 AM,40,0,0,20,10
-            11-12 PM,60,0,0,0,5
-            """,
+            9-10 AM,45,0,15,0,5
+            10-11 AM,40,0,0,20,5
+            11-12 PM,55,0,0,5,5
+        """,
         "surrounding_type": "cubicle",
         "screen_capture_data": """
-            Frame 1: The user is working on a spreadsheet with a focus on financial data, likely creating formulas and charts.
-            Frame 2: The user is switching between a project management tool (e.g., Jira) and an email client to check updates.
-            Frame 3: The user is typing a detailed report in a word processor, reviewing sections and adding comments.
-            Frame 4: A break screen showing the user browsing a health-related article but quickly returning to the spreadsheet.
+            Frame 1: The user is solving math problems related to geometry and algebra.
+            Frame 2: The user is re-checking calculations and writing formulas on a whiteboard.
+            Frame 3: The user is switching to a browser to look up mathematical concepts and examples.
+            Frame 4: The user is reviewing a practice test and marking questions for review.
         """,
         "output": """
-        ["Analysis": "You spent the majority of your morning working at your desk and attending meetings. Screen captures suggest multitasking across different tools and tasks, leading to potential cognitive overload.",
+        ["Analysis": "You are intensely focused on math-related tasks with minimal breaks, leading to potential mental fatigue. The frequent switching between solving problems and browsing concepts can disrupt flow and add stress.",
         "Interventions": [
-            Immediate Action: "Pause for 5 minutes and list your top 2 priorities for the next hour. Focus on finishing one task at a time before moving to the next. Avoid toggling between tools unnecessarily."
-        ],
-        "Task Improvement": [
-            "For spreadsheets, break down the data into smaller, manageable chunks and set clear goals for each session. Use predefined templates to reduce workload.",
-            "For project management, consolidate updates into one session instead of checking repeatedly. Allocate specific time slots for emails and task reviews."
-        ],
-        "Follow-Up": [
-            "Adopt a single-tasking approach by using time-blocking. Dedicate uninterrupted time to critical tasks and avoid distractions.",
-            "Review your tasks at the end of each session to ensure completion and avoid the need to revisit them later."
-        ]
+            Immediate Action: "Take a minute break after a session of problem-solving. During the break, practice 4-7-8 breathing (inhale for 4 seconds, hold for 7 seconds, exhale for 8 seconds) to reduce stress and improve focus.",
+            Task Improvement: [
+                "Group similar math problems together to avoid context-switching. For example, solve all algebra questions first, then geometry.",
+                "Write down formulas and important concepts on a cheat sheet for quick reference to minimize browser distractions."
+            ],
+            "Follow-Up": [
+                "Plan your practice sessions with alternating blocks of intense focus (50 minutes) and short breaks (10 minutes). Use the Pomodoro technique to maintain a steady workflow.",
+                "Review incorrect questions in the last 15 minutes of each session to consolidate learning and reduce anxiety before tests."
+            ]
         ]
         """,
     },
@@ -258,31 +257,30 @@ INTERVENTION_EXAMPLES = [
         "stress_level": "not stressed",
         "activity_timetable": """
             Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
-            7-8 AM,0,30,0,0,0
-            8-9 AM,40,0,20,0,0
-            9-10 AM,10,0,0,20,10
-            10-11 AM,30,0,0,10,20
+            7-8 AM,20,30,10,0,10
+            8-9 AM,50,0,10,0,5
+            9-10 AM,40,0,0,20,10
+            10-11 AM,45,0,0,15,5
         """,
-        "surrounding_type": "cafeteria",
+        "surrounding_type": "office",
         "screen_capture_data": """
-            Frame 1: The user is watching a YouTube tutorial on improving coding efficiency.
-            Frame 2: The user is reviewing a light-hearted blog about travel destinations.
-            Frame 3: The user is scrolling through a recipe website, potentially planning a meal.
-            Frame 4: A casual activity, such as playing an online word game.
+            Frame 1: The user is typing a passage from a document at high speed.
+            Frame 2: The user is reviewing their typed text for errors and correcting them.
+            Frame 3: The user is practicing typing speed on a test platform with a timer.
+            Frame 4: The user is adjusting the ergonomics of their keyboard and chair.
         """,
         "output": """
-        ["Analysis": "Your schedule shows good balance with walking and commuting, complemented by light desk activities. However, screen captures suggest a mix of unrelated tasks, which may dilute focus and reduce retention.",
+        ["Analysis": "Your focus is on improving typing speed with timed tests and text reviews. While you're not stressed, prolonged typing sessions can lead to hand fatigue or strain if posture and breaks are neglected.",
         "Interventions": [
-            Immediate Action: "Focus on completing one light task at a time, like finishing the YouTube tutorial or planning your meal. Avoid jumping between unrelated activities."
-        ],
-        "Task Improvement": [
-            "For tutorials, take brief notes on actionable points and practice them immediately to reinforce learning.",
-            "For recipe planning, create a weekly meal plan to save time and avoid repetition."
-        ],
-        "Follow-Up": [
-            "Dedicate separate time slots for learning, leisure, and planning. This ensures that you fully enjoy each activity without interruptions.",
-            "Set clear goals for your leisure tasks, such as finishing a tutorial series or finalizing a travel itinerary, to stay productive even in downtime."
-        ]
+            Immediate Action: "Every typing test, stretch your fingers, wrists, and shoulders. Perform simple hand exercises like making a fist and releasing it 10 times.",
+            Task Improvement: [
+                "Use online tools that provide detailed feedback on typing speed and accuracy. Focus on improving the accuracy first, then work on speed.",
+                "Adjust your keyboard position so that your wrists remain straight, and ensure your chair provides good back support."
+            ],
+            "Follow-Up": [
+                "Set daily goals for typing speed improvement (e.g., increase by 5 WPM). Track progress weekly to stay motivated.",
+                "Integrate short mindfulness exercises (e.g., deep breathing for 2 minutes) after every 3 sessions to stay relaxed and maintain focus."
+            ]
         ]
         """,
     },
@@ -290,34 +288,66 @@ INTERVENTION_EXAMPLES = [
         "stress_level": "stressed",
         "activity_timetable": """
             Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
-            1-2 PM,50,0,0,0,10
-            2-3 PM,30,0,0,30,5
-            3-4 PM,40,0,0,20,5
-            4-5 PM,60,0,0,0,0
+            1-2 PM,40,0,10,10,5
+            2-3 PM,50,0,0,0,10
+            3-4 PM,60,0,0,0,0
+            4-5 PM,45,0,0,15,5
         """,
         "surrounding_type": "office",
         "screen_capture_data": """
-            Frame 1: The user is debugging a piece of Python code, running test cases to identify errors.
-            Frame 2: The user is preparing a PowerPoint presentation with charts and bullet points for an upcoming meeting.
-            Frame 3: The user is in a virtual meeting, with the video call app occupying the majority of the screen.
-            Frame 4: The user is reviewing feedback on a shared document, making edits and comments for clarification.
+            Frame 1: The user is working on a website mockup using a design tool like Figma or Adobe XD.
+            Frame 2: The user is searching for color palettes and UI inspiration online.
+            Frame 3: The user is reviewing client feedback on a shared design document.
+            Frame 4: The user is creating a layout for a product page with an emphasis on responsive design.
         """,
         "output": """
-        ["Analysis": "Your afternoon was filled with desk work and meetings, with minimal walking and no food intake. Screen captures indicate frequent context-switching between highly demanding tasks, such as debugging, preparing presentations, and attending meetings.",
+        ["Analysis": "Your session is focused on creative and client-driven tasks, but the lack of breaks and overemphasis on visual detail can lead to creative fatigue and stress.",
         "Interventions": [
-            Immediate Action: "Take 10 minutes to prioritize your tasks. Focus on finishing the debugging task first before switching to presentation preparation. Avoid multitasking to improve efficiency."
-        ],
-        "Task Improvement": [
-            "For debugging, log the error patterns and their resolutions. Use this log to avoid repetitive errors in the future.",
-            "For presentations, outline your main points first before adding charts and visuals to save time and maintain clarity."
-        ],
-        "Follow-Up": [
-            "Adopt a 'one-task-at-a-time' approach by breaking your workday into focused blocks for specific tasks. Dedicate separate slots for meetings, coding, and document reviews.",
-            "At the end of the day, review unfinished tasks and allocate time for them in your next schedule to minimize carryovers."
-        ]
+            Immediate Action: "Take a minute walk outdoors or around the office to reset your mind. Avoid looking at screens during this time.",
+            Task Improvement: [
+                "Create a design checklist before starting the mockup to reduce back-and-forth revisions. For example, define colors, fonts, and layout components upfront.",
+                "Use pre-made UI kits or templates to speed up the design process for repetitive elements."
+            ],
+            "Follow-Up": [
+                "Schedule a 15-minute feedback review session at the end of the day to consolidate client input. This minimizes interruptions during design time.",
+                "Incorporate intentional breaks for inspiration, such as browsing a curated design gallery like Dribbble or Behance for 5 minutes."
+            ]
         ]
         """,
     },
+    {
+        "stress_level": "not stressed",
+        "activity_timetable": """
+            Time,Desk Work (min),Commuting (min),Eating (min),In-Meeting (min),Walking (min)
+            3-4 PM,45,0,0,15,5
+            4-5 PM,60,0,0,0,5
+            5-6 PM,50,0,0,10,10
+            6-7 PM,40,0,20,0,10
+        """,
+        "surrounding_type": "cubicle",
+        "screen_capture_data": """
+            Frame 1: The user is entering data into a spreadsheet from scanned documents.
+            Frame 2: The user is verifying entries against the original source for accuracy.
+            Frame 3: The user is using shortcuts to automate repetitive tasks (e.g., Excel formulas).
+            Frame 4: The user is checking the formatting and layout of the spreadsheet.
+        """,
+        "output": """
+        ["Analysis": "Your focus on repetitive data entry tasks with verification processes indicates good attention to detail. However, prolonged desk work can cause physical strain and monotony.",
+        "Interventions": [
+            Immediate Action: "After every session of data entry, stand up and stretch your legs for a minute. Perform neck rolls and wrist stretches to relieve physical strain.",
+            Task Improvement: [
+                "Use keyboard shortcuts to speed up repetitive tasks (e.g., Ctrl+D for copying cells). Learn Excel automation techniques like macros or data validation.",
+                "Set up a dual-monitor workspace if possible, with one screen for source data and the other for the spreadsheet. This reduces back-and-forth toggling and improves efficiency."
+            ],
+            "Follow-Up": [
+                "Review completed entries in batches instead of one-by-one to save time. This allows for more focused error-checking sessions.",
+                "Incorporate small rewards, such as a 5-minute game or snack break after completing each section, to maintain motivation."
+            ]
+        ]
+        """,
+    }
+
+
 ]
 
 

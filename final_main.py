@@ -168,7 +168,7 @@ def fetch_ecg(db_path, instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 30000
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 10000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
@@ -183,7 +183,7 @@ def fetch_ecg(db_path, instance):
                 cursor = connection.cursor()
                 query = """
                 SELECT * FROM ecg_data 
-                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 60000
+                WHERE timestamp_sensor >= (SELECT MAX(timestamp_sensor) FROM ecg_data) - 180000
                 AND timestamp_sensor <= (SELECT MAX(timestamp_sensor) FROM ecg_data);
                 """
                 cursor.execute(query)
