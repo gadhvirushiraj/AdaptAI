@@ -3,7 +3,7 @@ import pytz
 import numpy as np
 from scipy.signal import find_peaks
 
-def short_instance_stats(ecg_input, tsec=9):
+def short_instance_stats(ecg_input, tsec=180):
     """
     Compute HRV metrics from the last tsec seconds (default 1 minute) of ECG data.
 
