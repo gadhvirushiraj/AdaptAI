@@ -10,6 +10,7 @@ from task_extractor import audio_transcription, extract_task
 from intervent import intervention_gen
 import sounddevice as sd
 from scipy.io.wavfile import write, read
+from win10toast import ToastNotifier
 import numpy as np
 import os
 import cv2
@@ -228,36 +229,31 @@ def get_live_timetable(db_path):
 
     return header + "\n".join(rows)
 
+def show_intervention_popup(intervention):
+    """
+    Display a desktop notification using win10toast.
+    """
+    toaster = ToastNotifier()
+    toaster.show_toast(
+        "Intervention Prompt",
+        intervention,
+        duration=10  # Notification duration in seconds
+    )
 
-def intervent_pipeline(
-    client, live_timetable, surrounding, stress_level, screen_capture_data
-):
+
+def intervent_pipeline(client, live_timetable, surrounding, stress_level, screen_capture_data):
     if live_timetable is not None:
         intervent = intervention_gen(
             client, stress_level, live_timetable, surrounding, screen_capture_data
         )
+        
+        # Trigger desktop notification
+        show_intervention_popup(intervent)
 
-        # Display the intervent message
-        print(f"\nGenerated Intervention:\n{intervent}")
-
-        # Prompt the user for a yes/no input
-        while True:
-            user_input = (
-                input("Do you accept this intervention? (yes/no): ").strip().lower()
-            )
-            if user_input in ["yes", "no"]:
-                break
-            print("Invalid input. Please type 'yes' or 'no'.")
-
-        # Handle the response
-        if user_input == "yes":
-            print("You accepted the intervention.")
-            # Add your logic for 'yes' here
-        else:
-            print("You declined the intervention.")
-            # Add your logic for 'no' here
+        # Log to console for debugging
+        print(f"Generated Intervention: {intervent}")
     else:
-        return
+        print("No intervention generated")
 
 
 def vision_pipeline(client, db_path):
@@ -343,7 +339,7 @@ def vision_pipeline(client, db_path):
         ecg_data = fetch_ecg("sensor_data.db", "short")
         # print('ecg_data', ecg_data)
         json_hrv = short_instance_stats(ecg_data)
-
+        print('pnn50', json_hrv["metrics"]["pnn50"])
         push_to_table(
             """
             INSERT INTO hrv_data (mean_rr, pnn50, pnn30, pnn20, heart_rate)
@@ -361,16 +357,17 @@ def vision_pipeline(client, db_path):
 
         time_diff = time.time() - last_capture_time
         # For individual frames
-        if time_diff < 2:
-            time.sleep(2 - time_diff)
+        if time_diff < 10:
+            time.sleep(10 - time_diff)
 
         # For collective frame processing
-        if len(activity_class_data) == 3:
+        if len(activity_class_data) == 12:
             start_time = time.strftime(
                 "%H:%M", time.localtime(last_timetable_push_time)
             )
             ecg_data = fetch_ecg("sensor_data.db", "long")
             long_hrv = long_instance_stats(ecg_data)
+            print('pnn50 long', long_hrv["metrics"]["pnn50"])
             end_time = time.strftime("%H:%M", time.localtime(time.time()))
             time_interval = f"{start_time} - {end_time}"
             push_to_table(
@@ -520,9 +517,9 @@ def main():
     recorder.start_recording()
 
     vision_thread = threading.Thread(target=vision_pipeline, args=(client, db_path))
-    audio_thread = threading.Thread(
-        target=audio_pipeline, args=(client, db_path, recorder)
-    )
+    #audio_thread = threading.Thread(
+    #    target=audio_pipeline, args=(client, db_path, recorder)
+    #)
 
     try:
         vision_thread.start()

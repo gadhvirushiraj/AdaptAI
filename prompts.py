@@ -175,11 +175,26 @@ Provide:
    - Observed multitasking or focus patterns from the screen capture data.
    - Current surroundings.
 
+Additional Context:
+The tasks the person is working on are:
+
+1. **Math Test**: Problem-solving requiring focus and analytical thinking.
+2. **Typing Test**: Requires speed and accuracy in typing.
+3. **Website Design Task**: Demands creativity, attention to detail, and interaction with design tools.
+4. **Data Entry Task**: Involves repetitive tasks that may lead to fatigue or monotony.
+
+
 #### Guidelines:
-1. **Activity Insights**: If the `screen_capture_data` indicates frequent multitasking or context-switching, recommend steps to minimize distractions and prioritize single-tasking.
-2. **Time-Conscious Suggestions**: Interventions must be actionable and fit within workplace norms, ideally taking 5-15 minutes.
-3. **Environment-Aware**: Tailor interventions to the current surroundings, such as suggesting physical activity in open spaces or short mindfulness exercises in quieter areas.
-4. **Stress Reduction**: When `stress_level` is `stressed`, focus on relaxation, structured task prioritization, and manageable work blocks. For `not stressed`, focus on maintaining productivity and balance.
+Guidelines:
+1. **Task-Based Interventions**: Recommend interventions specific to the type of task:
+    - **Math Test**: Suggest relaxation and focus strategies to improve analytical thinking and reduce cognitive overload.
+    - **Typing Test**: Suggest short hand exercises or breathing techniques to improve typing performance and reduce tension.
+    - **Website Design Task**: Recommend short creativity-boosting exercises, such as taking a walk or looking at inspiring designs.
+    - **Data Entry Task**: Suggest physical movement or brief mindfulness practices to counter monotony and reduce fatigue.
+2. **Activity Insights**: If the `screen_capture_data` indicates frequent multitasking or context-switching, recommend steps to minimize distractions and prioritize single-tasking.
+3. **Time-Conscious Suggestions**: Interventions must be actionable and fit within workplace norms, ideally taking 5-15 minutes.
+4. **Environment-Aware**: Tailor interventions to the current surroundings, such as suggesting physical activity in open spaces or short mindfulness exercises in quieter areas.
+5. **Stress Reduction**: When `stress_level` is `stressed`, focus on relaxation, structured task prioritization, and manageable work blocks. For `not stressed`, focus on maintaining productivity and balance.
 
 ### Example Format:
 **Input:**  
