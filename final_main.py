@@ -19,7 +19,7 @@ import csv
 import re
 
 # Query device info for the selected device
-device_index = 11  # Replace with your device index (e.g., Realtek Microphone Array)
+device_index = 28  # Replace with your device index (e.g., Realtek Microphone Array)
 sd.default.device = device_index
 
 # Lock for thread-safe database access
@@ -34,7 +34,7 @@ def get_client():
         groq client
     """
     os.environ["GROQ_API_KEY"] = (
-        "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"
+        "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"
     )
     client = Groq(
         api_key=os.environ.get("GROQ_API_KEY"),
@@ -254,6 +254,10 @@ def intervent_pipeline(client, live_timetable, surrounding, stress_level, screen
 
         # Log to console for debugging
         print(f"Generated Intervention: {immediate_action}")
+
+        # Write the immediate action to a text file with a new line between entries
+        with open("immediate_action_log.txt", "w") as file:
+            file.write(f"{immediate_action}\n\n")
     else:
         print("No intervention generated")
 
@@ -406,7 +410,7 @@ def vision_pipeline(client, db_path):
 
 
 class AudioRecorder:
-    def __init__(self, samplerate=48000, channels=2, device_index=11):
+    def __init__(self, samplerate=48000, channels=1, device_index=11):
         self.samplerate = samplerate
         self.channels = channels
         self.device_index = device_index
@@ -519,22 +523,22 @@ def main():
     recorder.start_recording()
 
     vision_thread = threading.Thread(target=vision_pipeline, args=(client, db_path))
-    #audio_thread = threading.Thread(
-    #    target=audio_pipeline, args=(client, db_path, recorder)
-    #)
+    audio_thread = threading.Thread(
+       target=audio_pipeline, args=(client, db_path, recorder)
+    )
 
     try:
         vision_thread.start()
-        # audio_thread.start()
+        audio_thread.start()
 
         # Wait for both threads to finish
         vision_thread.join()
-        # audio_thread.join()
+        audio_thread.join()
     except KeyboardInterrupt:
         print("Stopping processes...")
         recorder.stop_recording()
         vision_thread.join()
-        # audio_thread.join()
+        audio_thread.join()
         print("All processes stopped gracefully.")
 
 

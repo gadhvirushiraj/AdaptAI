@@ -12,7 +12,7 @@ import streamlit as st
 
 # Define the prompt template
 PROMPT = """
-You are an expert in workplace well-being and productivity. Your role is to analyze the provided inputs and return actionable interventions to improve the user's stress levels, well-being, and productivity. Provide interventions according to the tasks which you can estimate based on screen capture data. For example for typing suggest to streach hands, for math just gaze out of the screen, for web deisgn something to reduce cognitive load and improve creativity, for coding neck excercises and for data entry leg streaches.
+Analyze the provided inputs and return actionable interventions to improve the user's stress levels, well-being, and productivity. Provide interventions according to the tasks which you can estimate based on screen capture data. For example for typing suggest to streach hands, for math just gaze out of the screen, for web deisgn something to reduce cognitive load and improve creativity, for coding neck excercises and for data entry leg streaches.
 
 INPUT PARAMETERS:
 1. **Stress Level**: The user's current stress state (`stressed` or `not stressed`).
@@ -34,6 +34,8 @@ RULES:
 4. The `detailed_analysis` must explain how the provided inputs influenced the recommendation.
 5. Provide interventions according to the tasks which you can estimate based on screen capture data.
 6. For each task provide a different intervention.
+7. Do not suggest an intervention greater than a minute.
+8. For design tasks suggest interventions to reduce cognitive load and improve creativity while helping the user design better on Figma.
 """
 
 # Function to call OpenAI API for generating intervention
