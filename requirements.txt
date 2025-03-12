@@ -1,10 +1,13 @@
-biosppy==2.2.3
+biosppy==2.2.2
 bleak==0.22.3
 groq==0.19.0
-langchain_core==0.3.44
+langchain==0.3.14
+langchain_core==0.3.43
+langchain_groq==0.2.5
 mss==10.0.0
-numpy==2.2.3
+numpy==2.2.1
 opencv_python==4.11.0.86
-scipy==1.15.2
+scipy==1.15.1
 sounddevice==0.5.1
+streamlit==1.41.1
 win10toast==0.9

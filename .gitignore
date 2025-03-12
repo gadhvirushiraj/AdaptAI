@@ -2,6 +2,9 @@
 frames/
 data/*
 
+# DBs
+task.db
+
 # misc. others
 .vscode
 .DS_Store
