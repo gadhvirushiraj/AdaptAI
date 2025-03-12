@@ -2,16 +2,17 @@
 Pipeline to detect Task and its Urgency
 """
 
-import json
-from prompts import TASK_EXTRACTION_PROMPT
-import wave
 import os
+import wave
+import json
+
+from prompts import TASK_EXTRACTION_PROMPT
 
 
 def split_audio_file(input_file, chunk_duration=15):
     """
     Split an audio file into smaller chunks if the file is too large.
-    
+
     Args:
         input_file (str): Path to the input audio file (WAV format).
         chunk_duration (int): Duration of each chunk in seconds.
@@ -20,7 +21,7 @@ def split_audio_file(input_file, chunk_duration=15):
         List[str]: List of file paths for the audio chunks.
     """
     chunks = []
-    with wave.open(input_file, 'rb') as wav:
+    with wave.open(input_file, "rb") as wav:
         frame_rate = wav.getframerate()
         channels = wav.getnchannels()
         sample_width = wav.getsampwidth()
@@ -33,33 +34,37 @@ def split_audio_file(input_file, chunk_duration=15):
             chunk_data = wav.readframes(frames_per_chunk)
 
             chunk_file = f"{input_file}_chunk_{i // frames_per_chunk + 1}.wav"
-            with wave.open(chunk_file, 'wb') as chunk_wav:
+            with wave.open(chunk_file, "wb") as chunk_wav:
                 chunk_wav.setnchannels(channels)
                 chunk_wav.setsampwidth(sample_width)
                 chunk_wav.setframerate(frame_rate)
                 chunk_wav.writeframes(chunk_data)
 
             chunks.append(chunk_file)
-    
+
     return chunks
 
 
-def audio_transcription(client, filename, max_file_size=10 * 1024 * 1024, chunk_duration=15):
+def audio_transcription(
+    client, filename, max_file_size=10 * 1024 * 1024, chunk_duration=15
+):
     """
     Transcribe an audio file using the Groq API. Splits into smaller chunks if too large.
-    
+
     Args:
         client: The transcription client (e.g., Groq API client).
         filename (str): Path to the input audio file.
         max_file_size (int): Maximum file size in bytes. Defaults to 10 MB.
         chunk_duration (int): Duration of each chunk in seconds for splitting large files.
-    
+
     Returns:
         str: Transcribed text from the audio file.
     """
     try:
         if os.path.getsize(filename) > max_file_size:
-            print(f"File {filename} exceeds {max_file_size / (1024 * 1024):.2f} MB. Splitting into chunks...")
+            print(
+                f"File {filename} exceeds {max_file_size / (1024 * 1024):.2f} MB. Splitting into chunks..."
+            )
             chunks = split_audio_file(filename, chunk_duration)
         else:
             chunks = [filename]
@@ -87,7 +92,6 @@ def audio_transcription(client, filename, max_file_size=10 * 1024 * 1024, chunk_
     except Exception as e:
         print(f"Error occurred while transcribing audio file: {e}")
         return None
-
 
 
 def extract_task(client, audio_transcription):

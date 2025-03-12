@@ -1,5 +1,10 @@
-import sqlite3
+"""
+Export sensor table for testing and verification.
+"""
+
 import csv
+import sqlite3
+
 
 def export_table_to_csv(db_name, table_name, output_file):
     """
@@ -12,36 +17,30 @@ def export_table_to_csv(db_name, table_name, output_file):
     """
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
-    
+
     try:
         # Fetch all rows from the table
         cursor.execute(f"SELECT * FROM {table_name}")
         rows = cursor.fetchall()
-        
+
         # Get column names from the table
         column_names = [description[0] for description in cursor.description]
-        
+
         # Write data to CSV
-        with open(output_file, mode='w', newline='', encoding='utf-8') as csv_file:
+        with open(output_file, mode="w", newline="", encoding="utf-8") as csv_file:
             writer = csv.writer(csv_file)
-            # Write the header
             writer.writerow(column_names)
-            # Write the data
             writer.writerows(rows)
-        
+
         print(f"Exported {table_name} to {output_file} successfully.")
-    
+
     except sqlite3.Error as e:
         print(f"Error exporting {table_name}: {e}")
-    
+
     finally:
         conn.close()
 
-# Database and table information
-db_name = "sensor_data.db"
 
-# Export ECG data
-export_table_to_csv(db_name, "ecg_data", "ecg_data.csv")
-
-# Export IMU data
-export_table_to_csv(db_name, "imu_data", "imu_data.csv")
+DB_NAME = "sensor_data.db"
+export_table_to_csv(DB_NAME, "ecg_data", "ecg_data.csv")  # Export ECG data
+export_table_to_csv(DB_NAME, "imu_data", "imu_data.csv")  # Export IMU data

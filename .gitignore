@@ -2,10 +2,7 @@
 frames/
 data/*
 
-# other
+# misc. others
 .vscode
 .DS_Store
 __pycache__
-
-accumulated_audio.wav
-test_gpt.py
