@@ -22,11 +22,11 @@ AdaptAI is a research project focused on AI-driven personalization to boosting w
 
 ### Model and API Keys
 
-We utilized Open-Source Groq Hosted Models during the development and testing. During theses phases some models used were under Groq Preview Models category. To run AdaptAI, pyou need to provide your own Groq-API-Key.
+We utilized Open-Source Groq hosted models during the development and testing. During theses phases some models used were under Groq preview models category. To run AdaptAI, you need to provide your own Groq-API-Key.
 
 ### Hardware Specifications
 
-- _Logitech C920 HD Pro Webcam_ (used for egocentric camera)
+- _Logitech C920 HD Pro Webcam_ (used for egocentric vision and audio)
 - _MoveSense HR2_ (used for ECG, Heart Rate Monitoring and Motion Data)
 
 ## Citation
