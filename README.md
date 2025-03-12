@@ -1,4 +1,4 @@
-# AdaptAI ♻
+# AdaptAI
 
 _AdaptAI work is accepted at CHI 2025; Late-Breaking Work [[Paper Link🔗](https://programs.sigchi.org/chi/2025/program/content/194447)]_
 
