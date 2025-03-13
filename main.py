@@ -17,8 +17,8 @@ from scipy.io.wavfile import write, read
 
 from intervent import intervention_gen
 from acs_detection import get_img_desp, get_acs
-from task_extractor import audio_transcription
-from audio_agent import process_meeting
+from audio_transcription import audio_transcription
+from audio_agent import agent_process
 from biostats import short_instance_stats, long_instance_stats
 from crud_db import (
     create_table,
@@ -325,10 +325,7 @@ def audio_pipeline(client, db_path, recorder, duration=60):
         if not transcription:
             print("No transcription generated. Skipping.")
             continue
-        process_meeting(
-            transcription,
-            GROQ_API_KEY,
-        )
+        agent_process(transcription, GROQ_API_KEY, SMPT_USER, SMPT_PASS)
 
 
 def main():

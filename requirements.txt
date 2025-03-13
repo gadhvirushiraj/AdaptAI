@@ -11,3 +11,4 @@ scipy==1.15.1
 sounddevice==0.5.1
 streamlit==1.41.1
 win10toast==0.9
+ics==0.7.2

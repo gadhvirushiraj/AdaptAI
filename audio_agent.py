@@ -1,11 +1,16 @@
+"""
+Agent Processor Script: This script extracts meeting details from transcripts, decides actions 
+(summarize, email, or calendar invite), and performs the necessary operations using an LLM.
+"""
+
 import os
 import re
 import json
 import smtplib
-from groq import Groq
+from email.message import EmailMessage
+
 from ics import Calendar, Event
 from langchain_groq import ChatGroq
-from email.message import EmailMessage
 from langchain.schema import SystemMessage, HumanMessage
 
 
@@ -167,7 +172,7 @@ def send_email(to_email, subject, body, smtp_user, smtp_password):
         server.send_message(msg)
 
 
-def process_meeting(transcription, api_key, smtp_user, smtp_password):
+def agent_process(transcription, api_key, smtp_user, smtp_password):
     """Processes a meeting transcript and performs necessary actions."""
     llm = ChatGroq(api_key=api_key, model_name="llama3-70b-8192")
 
