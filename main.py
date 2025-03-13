@@ -17,7 +17,8 @@ from scipy.io.wavfile import write, read
 
 from intervent import intervention_gen
 from acs_detection import get_img_desp, get_acs
-from task_extractor import audio_transcription, extract_task
+from task_extractor import audio_transcription
+from audio_agent import process_meeting
 from biostats import short_instance_stats, long_instance_stats
 from crud_db import (
     create_table,
@@ -33,7 +34,10 @@ db_lock = threading.Lock()
 DEVICE_INDEX = 28
 sd.default.device = DEVICE_INDEX
 
+# api keys and passwords
 GROQ_API_KEY = "your-groq-api-key"
+SMPT_USER = "your-smpt-user"
+SMPT_PASS = "your-smpt-pass"
 
 
 def get_client():
@@ -294,7 +298,7 @@ class AudioRecorder:
 
 def audio_pipeline(client, db_path, recorder, duration=60):
     """
-    Function to process accumulated audio every 15 seconds.
+    Function to process accumulated audio every 'duration' seconds.
 
     Args:
         client: The client object for transcription and task extraction.
@@ -305,7 +309,6 @@ def audio_pipeline(client, db_path, recorder, duration=60):
     audio_file = "accumulated_audio.wav"
 
     while True:
-        # Wait for the next 15-second interval
         time.sleep(duration)
 
         # Extract the last `duration` seconds of audio and save to a file
@@ -322,24 +325,10 @@ def audio_pipeline(client, db_path, recorder, duration=60):
         if not transcription:
             print("No transcription generated. Skipping.")
             continue
-
-        extracted_tasks = extract_task(client, transcription)
-        if extracted_tasks:
-            for task in extracted_tasks:
-                push_to_table(
-                    db_lock, "INSERT INTO tasks (task) VALUES (?);", (task,), db_path
-                )
-            print(f"Extracted tasks: {extracted_tasks}")
-        else:
-            print("No tasks extracted.")
-
-        # Store extracted tasks in the database
-        for task in extracted_tasks:
-            push_to_table(
-                db_lock, "INSERT INTO tasks (task) VALUES (?);", (task,), db_path
-            )
-
-        print(f"Extracted tasks: {extracted_tasks}")
+        process_meeting(
+            transcription,
+            GROQ_API_KEY,
+        )
 
 
 def main():
