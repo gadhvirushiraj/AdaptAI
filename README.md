@@ -1,6 +1,6 @@
 # AdaptAI
 
-_AdaptAI work is accepted at CHI 2025; Late-Breaking Work [[CHI Paper Link 🔗](https://programs.sigchi.org/chi/2025/program/content/19444)] | [[arXiv Paper Link 🔗](https://arxiv.org/abs/2503.09150)]
+AdaptAI work is accepted at CHI 2025; Late-Breaking Work [[CHI Paper Link 🔗](https://programs.sigchi.org/chi/2025/program/content/19444)] | [[arXiv Paper Link 🔗](https://arxiv.org/abs/2503.09150)]
 
 ### **_A Personalized Solution to Sense Your Stress, Fix Your Mess, and Boost Productivity_**
 
