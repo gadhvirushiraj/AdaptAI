@@ -50,8 +50,8 @@ Before running the application, update the following variables in the code:
   streamlit run tca.py
   ```
 
-  The UI will be available at **[http://localhost:8501](http://localhost:8501)**.  
-
+  The UI will be available at [[http://localhost:8501](http://localhost:8501)]
+  
 ## Further Details 📖
 
 ### Model and API Keys
