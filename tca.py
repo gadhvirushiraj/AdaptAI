@@ -3,33 +3,19 @@ Tone-Adaptive Conversational Agent main pipeline file.
 """
 
 import sqlite3
-from groq import Groq
 import streamlit as st
 from langchain_core.prompts import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
     MessagesPlaceholder,
 )
-from langchain_groq import ChatGroq
-from langchain.prompts import PromptTemplate
 from langchain_core.messages import SystemMessage
-from langchain.chains import ConversationChain, LLMChain
+from langchain_groq import ChatGroq
+from langchain.chains import LLMChain
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 
 from prompts import PERSONALIZED_LLM_PROMPT
-
-
-def timetable_database(db_path):
-    """Fetches timetable data from the database and formats it as CSV."""
-    connection = sqlite3.connect(db_path)
-    cursor = connection.cursor()
-    cursor.execute("SELECT * FROM timetable")
-    tables = cursor.fetchall()
-
-    header = "time_interval,Desk_Work,Commuting,Eating,In_Meeting,pnn50,hr\n"
-    rows = [",".join(map(str, row)) for row in tables]
-
-    return header + "\n".join(rows)
+from crud_db import get_timetable_w_stress_lvl
 
 
 def tca(groq_api_key):
@@ -44,7 +30,7 @@ def tca(groq_api_key):
     # Sidebar customization
     st.sidebar.title("Customization")
     model = st.sidebar.selectbox(
-        "Choose a model", ["llama3-8b-8192", "mixtral-8x7b-32768", "gemma-7b-it"]
+        "Choose a model", ["llama-3.3-70b-versatile, llama3-70b-8192, llama3-8b-8192"]
     )
     conversational_memory_length = st.sidebar.slider(
         "Conversational memory length:", 1, 10, value=5
@@ -68,7 +54,7 @@ def tca(groq_api_key):
     groq_chat = ChatGroq(groq_api_key=groq_api_key, model_name=model)
 
     # Fetch timetable data
-    tables = timetable_database("task.db")
+    tables = get_timetable_w_stress_lvl("task.db")
 
     if user_question:
         # Format query with context

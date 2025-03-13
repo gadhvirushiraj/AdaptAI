@@ -75,11 +75,11 @@ def audio_transcription(
             print(f"Transcribing chunk: {chunk}")
             with open(chunk, "rb") as file:
                 transcription = client.audio.transcriptions.create(
-                    file=(chunk, file.read()),  # Audio file
-                    model="whisper-large-v3-turbo",  # Model to use for transcription
-                    response_format="json",  # Response format
-                    language="en",  # Language of the audio
-                    temperature=0.0,  # Sampling temperature
+                    file=(chunk, file.read()),
+                    model="whisper-large-v3-turbo",
+                    response_format="json",
+                    language="en",
+                    temperature=0.0,
                 )
                 transcription_text += transcription.text + " "
 
@@ -99,13 +99,11 @@ def extract_task(client, audio_transcription):
     Extract task and its urgency from the transcription
     """
 
-    # Define the messages for the conversation
     messages = [
         {"role": "system", "content": TASK_EXTRACTION_PROMPT},
         {"role": "user", "content": audio_transcription},
     ]
 
-    # Create a chat completion
     chat_completion = client.chat.completions.create(
         messages=messages,
         model="llama3-8b-8192",
@@ -128,5 +126,4 @@ def extract_task(client, audio_transcription):
         print("Response content was:", content)
         return []
 
-    # Return the generated content
     return tasks

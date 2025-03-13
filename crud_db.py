@@ -14,6 +14,29 @@ def get_live_timetable(db_lock, db_path):
     return header + "\n".join(rows)
 
 
+def get_timetable_w_stress_lvl(db_path):
+    """Fetches timetable data from the database, calculates stress level, and formats it as CSV."""
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    cursor.execute(
+        "SELECT time_interval, Desk_Work, Commuting, Eating, In_Meeting, pnn50 FROM timetable"
+    )
+    tables = cursor.fetchall()
+
+    header = "time_interval,Desk_Work,Commuting,Eating,In_Meeting,stress_level\n"
+    rows = []
+    for row in tables:
+        time_interval, desk_work, commuting, eating, in_meeting, pnn50 = row
+        stress_level = (
+            "high" if pnn50 < 20 else "moderate" if 20 <= pnn50 < 50 else "low"
+        )
+        rows.append(
+            f"{time_interval},{desk_work},{commuting},{eating},{in_meeting},{stress_level}"
+        )
+
+    return header + "\n".join(rows)
+
+
 def create_table(db_path):
     """
     Creates necessary tables in the SQLite database.
