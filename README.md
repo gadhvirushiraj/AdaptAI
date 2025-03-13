@@ -33,9 +33,17 @@ We utilized Open-Source Groq hosted models during the development and testing. D
 
 Please cite the following if you reference our work.
 
-```
-to be added
-```
+
+@misc{gadhvi2025adaptaipersonalizedsolutionsense,
+      title={AdaptAI: A Personalized Solution to Sense Your Stress, Fix Your Mess, and Boost Productivity}, 
+      author={Rushiraj Gadhvi and Soham Petkar and Priyansh Desai and Shreyas Ramachandran and Siddharth Siddharth},
+      year={2025},
+      eprint={2503.09150},
+      archivePrefix={arXiv},
+      primaryClass={cs.HC},
+      url={https://arxiv.org/abs/2503.09150}, 
+}
+
 
 ## Acknowledgement
 
